@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>interview on FlakM blog</title><link>https://flakm.github.io/tags/interview/</link><description>Recent content in interview on FlakM blog</description><generator>Hugo -- gohugo.io</generator><language>pl</language><copyright>Copyright © 2022, Maciej Flak; all rights reserved.</copyright><lastBuildDate>Sun, 08 May 2022 14:12:20 +0100</lastBuildDate><atom:link href="https://flakm.github.io/tags/interview/index.xml" rel="self" type="application/rss+xml"/><item><title>Simple rust interview questions</title><link>https://flakm.github.io/posts/rust_interview_questions/</link><pubDate>Sun, 08 May 2022 14:12:20 +0100</pubDate><guid>https://flakm.github.io/posts/rust_interview_questions/</guid><description>&lt;p>List of interview questions along with minimal answers. A good question should:&lt;/p>
+&lt;ol>
+&lt;li>Check ability to think outside the box&lt;/li>
+&lt;li>Check deep understanding of key concepts&lt;/li>
+&lt;li>Invite discussion&lt;/li>
+&lt;li>Check ability to communicate tricky parts of the technology&lt;/li>
+&lt;li>Check formal knowledge of the domain&lt;/li>
+&lt;/ol></description></item></channel></rss>

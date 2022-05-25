@@ -1,22 +1,145 @@
-<!doctype html><html lang=pl><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rustberry PI - LED | FlakM blog</title><meta name=viewport content="width=device-width,minimum-scale=1"><meta name=generator content="Hugo 0.74.1"><meta name=ROBOTS content="INDEX, FOLLOW"><link href=/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css rel=stylesheet><link rel=stylesheet href=/css/main.css><meta property="og:title" content="Rustberry PI - LED"><meta property="og:description" content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀"><meta property="og:type" content="article"><meta property="og:url" content="https://flakm.github.io/posts/rustyled/"><meta property="og:image" content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/ta%C5%9Bma.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/uk%C5%82ad.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/led_bb.png"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/it-crowd-gif-4.gif"><meta property="article:published_time" content="2020-07-01T14:13:56+02:00"><meta property="article:modified_time" content="2020-07-01T14:13:56+02:00"><meta itemprop=name content="Rustberry PI - LED"><meta itemprop=description content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀"><meta itemprop=datePublished content="2020-07-01T14:13:56+02:00"><meta itemprop=dateModified content="2020-07-01T14:13:56+02:00"><meta itemprop=wordCount content="2641"><meta itemprop=image content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/ta%C5%9Bma.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/uk%C5%82ad.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/led_bb.png"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/it-crowd-gif-4.gif"><meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg"><meta name=twitter:title content="Rustberry PI - LED"><meta name=twitter:description content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀"><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-172669006-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><body class="ma0 avenir bg-near-white production"><header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg)><div class="pb3-m pb6-l bg-black-60"><nav class="pv3 ph3 ph4-ns" role=navigation><div class="flex-l justify-between items-center center"><a href=/ class="f3 fw2 hover-white no-underline white-90 dib">FlakM blog</a><div class="flex-l items-center"><ul class="pl0 mr3"><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/ title="Home page">Home</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/links title="Materiały page">Materiały</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/about/ title="O mnie page">O mnie</a></li></ul></div></div></nav><div class="tc-l pv6 ph3 ph4-ns"><h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - LED</h1></div></div></header><main class=pb7 role=main><article class="flex-l flex-wrap justify-between mw8 center ph3"><header class="mt4 w-100"><aside class="instapaper_ignoref b helvetica tracked">POSTS</aside><div id=sharing class=mt3><a href="https://www.facebook.com/sharer.php?u=https://flakm.github.io/posts/rustyled/" class="facebook no-underline" aria-label="share on Facebook"><svg height="32" style="enable-background:new 0 0 67 67" viewBox="0 0 67 67" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765 50.32h6.744V33.998h4.499l.596-5.624h-5.095l.007-2.816c0-1.466.14-2.253 2.244-2.253h2.812V17.68h-4.5c-5.405.0-7.307 2.729-7.307 7.317v3.377h-3.369v5.625h3.369V50.32zM33 64C16.432 64 3 50.569 3 34S16.432 4 33 4s30 13.431 30 30S49.568 64 33 64z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></a><a href="https://twitter.com/share?url=https://flakm.github.io/posts/rustyled/&text=Rustberry%20PI%20-%20LED" class="twitter no-underline" aria-label="share on Twitter"><svg height="32" style="enable-background:new 0 0 67 67" viewBox="0 0 67 67" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167 22.283c-2.619.953-4.274 3.411-4.086 6.101l.063 1.038-1.048-.127c-3.813-.487-7.145-2.139-9.974-4.915l-1.383-1.377-.356 1.017c-.754 2.267-.272 4.661 1.299 6.271.838.89.649 1.017-.796.487-.503-.169-.943-.296-.985-.233-.146.149.356 2.076.754 2.839.545 1.06 1.655 2.097 2.871 2.712l1.027.487-1.215.021c-1.173.0-1.215.021-1.089.467.419 1.377 2.074 2.839 3.918 3.475l1.299.444-1.131.678c-1.676.976-3.646 1.526-5.616 1.568C19.775 43.256 19 43.341 19 43.405c0 .211 2.557 1.397 4.044 1.864 4.463 1.377 9.765.783 13.746-1.568 2.829-1.673 5.657-5 6.978-8.221.713-1.716 1.425-4.851 1.425-6.354.0-.975.063-1.102 1.236-2.267.692-.678 1.341-1.419 1.467-1.631.21-.403.188-.403-.88-.043-1.781.636-2.033.551-1.152-.402.649-.678 1.425-1.907 1.425-2.267.0-.063-.314.042-.671.233-.377.212-1.215.53-1.844.72l-1.131.361-1.027-.7c-.566-.381-1.361-.805-1.781-.932C39.766 21.902 38.131 21.944 37.167 22.283zM33 64C16.432 64 3 50.569 3 34S16.432 4 33 4s30 13.431 30 30S49.568 64 33 64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:"/></svg></a><a href="https://www.linkedin.com/shareArticle?mini=true&url=https://flakm.github.io/posts/rustyled/&title=Rustberry%20PI%20-%20LED" class="linkedin no-underline" aria-label="share on LinkedIn"><svg height="32" style="enable-background:new 0 0 65 65" viewBox="0 0 65 65" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M50.837 48.137V36.425c0-6.275-3.35-9.195-7.816-9.195-3.604.0-5.219 1.983-6.119 3.374V27.71h-6.79c.09 1.917.0 20.427.0 20.427h6.79V36.729c0-.609.044-1.219.224-1.655.49-1.22 1.607-2.483 3.482-2.483 2.458.0 3.44 1.873 3.44 4.618v10.929H50.837zM22.959 24.922c2.367.0 3.842-1.57 3.842-3.531-.044-2.003-1.475-3.528-3.797-3.528s-3.841 1.524-3.841 3.528c0 1.961 1.474 3.531 3.753 3.531H22.959zM34 64C17.432 64 4 50.568 4 34 4 17.431 17.432 4 34 4s30 13.431 30 30C64 50.568 50.568 64 34 64zM26.354 48.137V27.71h-6.789v20.427H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:"/></svg></a></div><h1 class="f1 athelas mt3 mb1">Rustberry PI - LED</h1><time class="f6 mv4 dib tracked" datetime=2020-07-01T14:13:56+02:00>July 1, 2020</time>
-<span class="f6 mv4 dib tracked">- 13 minutes read</span>
-<span class="f6 mv4 dib tracked">- 2641 words</span></header><div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><div class=danger><p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
-<a href=https://github.com/FlakM/rustberry>tutaj</a></p></div><p>Pewnego pięknego dnia starając się nie pozwolić córce na zabawę starym kablem, który wyciągała z uciechą z szafy ukłułem się w palec pinem z zakurzonej maliny.
-Przypomniał mi się post, który niedawno czytałem o sterowaniu z rusta <a href=https://citizen-stig.github.io/2020/05/17/reading-temperature-sensor-in-rust-using-raspberry-pi-gpio.html>czujnikiem wilgoci i temperatury</a>. Hmm a gdyby tak&mldr;</p><p>Na początek skrócona lekcja elektroniki i prosty projekt.
-Bardzo polecam przejście przez dowolną serię dobrze opisanych eksperymentów przed zabawą z maliną. Wiedza na temat tego co się dzieje i jak działa prąd zwiększy bezpieczeństwo (nasze i delikatnych układów scalonych) oraz zapewni dużo większą satysfakcję z całego procesu.</p><h2 id=zakupy-i-przygotowania>Zakupy i przygotowania&mldr;</h2><p>Dalej drobna lista zakupów:</p><ul><li>Raspberry pi (właściwie dowolny model, ja posiadam 2B)</li><li>karta pamięci zgodna z wymaganiami maliny</li><li>karta rozszerzeń GPIO</li><li>Taśma 40-pin do karty GPIO</li><li>płytka stykowa</li><li>przewody męsko męskie</li><li>dioda led</li><li>rezystor o odpowiedniej wartości w moim przypakdu 4,7kohm (potem zamieniony na 330)</li></ul><p>W pierwszej kolejności należy zadbać o to, żeby na karcie pamięci pojawił się zainstalowany aktualny system.
+<!doctype html><html lang=pl>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge,chrome=1">
+<title>Rustberry PI - LED | FlakM blog</title>
+<meta name=viewport content="width=device-width,minimum-scale=1">
+<meta name=description content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀">
+<meta name=generator content="Hugo 0.91.2">
+<meta name=robots content="index, follow">
+<link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css>
+<link rel=stylesheet href=/css/main.css>
+<meta property="og:title" content="Rustberry PI - LED">
+<meta property="og:description" content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://flakm.github.io/posts/rustyled/"><meta property="og:image" content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/ta%C5%9Bma.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/uk%C5%82ad.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/led_bb.png"><meta property="og:image" content="https://flakm.github.io/images/rustypi/leds/it-crowd-gif-4.gif"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-07-01T14:13:56+02:00">
+<meta property="article:modified_time" content="2020-07-01T14:13:56+02:00">
+<meta property="og:see_also" content="https://flakm.github.io/posts/rustydht11/"><meta property="og:see_also" content="https://flakm.github.io/posts/rustylcd/">
+<meta itemprop=name content="Rustberry PI - LED">
+<meta itemprop=description content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀"><meta itemprop=datePublished content="2020-07-01T14:13:56+02:00">
+<meta itemprop=dateModified content="2020-07-01T14:13:56+02:00">
+<meta itemprop=wordCount content="2641"><meta itemprop=image content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/ta%C5%9Bma.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/uk%C5%82ad.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/led_bb.png"><meta itemprop=image content="https://flakm.github.io/images/rustypi/leds/it-crowd-gif-4.gif">
+<meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg">
+<meta name=twitter:title content="Rustberry PI - LED">
+<meta name=twitter:description content="Nie krótko i nie na temat o tym jak uczę się czym jest GPIO, jak się nim steruje na oraz w efekcie - jak zapalać diodę LED przy wykorzystaniu GPIO i rusta 🦀">
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga('create','UA-172669006-1','auto'),ga('send','pageview'))</script>
+<script async src=https://www.google-analytics.com/analytics.js></script>
+</head>
+<body class="ma0 avenir bg-near-white production">
+<header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/yannick-pipke-GtcA8mw0t1U-unsplash.jpg)>
+<div class=bg-black-60>
+<nav class="pv3 ph3 ph4-ns" role=navigation>
+<div class="flex-l justify-between items-center center">
+<a href=/ class="f3 fw2 hover-white no-underline white-90 dib">
+FlakM blog
+</a>
+<div class="flex-l items-center">
+<ul class="pl0 mr3">
+<li class="list f5 f4-ns fw4 dib pr3">
+<a class="hover-white no-underline white-90" href=/ title="Home page">
+Home
+</a>
+</li>
+<li class="list f5 f4-ns fw4 dib pr3">
+<a class="hover-white no-underline white-90" href=/about/ title="About me page">
+About me
+</a>
+</li>
+</ul>
+<div class=ananke-socials>
+<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
+<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
+</span>
+<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
+</span></a>
+</div>
+</div>
+</div>
+</nav>
+<div class="tc-l pv6 ph3 ph4-ns">
+<h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - LED</h1>
+</div>
+</div>
+</header>
+<main class=pb7 role=main>
+<article class="flex-l flex-wrap justify-between mw8 center ph3">
+<header class="mt4 w-100">
+<aside class="instapaper_ignoref b helvetica tracked">
+POSTS
+</aside>
+<div id=sharing class="mt3 ananke-socials">
+</div>
+<h1 class="f1 athelas mt3 mb1">Rustberry PI - LED</h1>
+<p class=tracked>
+By <strong>flakm</strong>
+</p>
+<time class="f6 mv4 dib tracked" datetime=2020-07-01T14:13:56+02:00>July 1, 2020</time>
+<span class="f6 mv4 dib tracked"> - 13 minutes read </span>
+<span class="f6 mv4 dib tracked"> - 2641 words </span>
+</header>
+<div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><div class=danger>
+<p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
+<a href=https://github.com/FlakM/rustberry>tutaj</a>
+</p>
+</div>
+<p>Pewnego pięknego dnia starając się nie pozwolić córce na zabawę starym kablem, który wyciągała z uciechą z szafy ukłułem się w palec pinem z zakurzonej maliny.
+Przypomniał mi się post, który niedawno czytałem o sterowaniu z rusta <a href=https://citizen-stig.github.io/2020/05/17/reading-temperature-sensor-in-rust-using-raspberry-pi-gpio.html>czujnikiem wilgoci i temperatury</a>. Hmm a gdyby tak&mldr;</p>
+<p>Na początek skrócona lekcja elektroniki i prosty projekt.
+Bardzo polecam przejście przez dowolną serię dobrze opisanych eksperymentów przed zabawą z maliną. Wiedza na temat tego co się dzieje i jak działa prąd zwiększy bezpieczeństwo (nasze i delikatnych układów scalonych) oraz zapewni dużo większą satysfakcję z całego procesu.</p>
+<h2 id=zakupy-i-przygotowania>Zakupy i przygotowania&mldr;</h2>
+<p>Dalej drobna lista zakupów:</p>
+<ul>
+<li>Raspberry pi (właściwie dowolny model, ja posiadam 2B)</li>
+<li>karta pamięci zgodna z wymaganiami maliny</li>
+<li>karta rozszerzeń GPIO</li>
+<li>Taśma 40-pin do karty GPIO</li>
+<li>płytka stykowa</li>
+<li>przewody męsko męskie</li>
+<li>dioda led</li>
+<li>rezystor o odpowiedniej wartości w moim przypakdu 4,7kohm (potem zamieniony na 330)</li>
+</ul>
+<p>W pierwszej kolejności należy zadbać o to, żeby na karcie pamięci pojawił się zainstalowany aktualny system.
 Można podejść do tego zgodnie z <a href=https://www.raspberrypi.org/documentation/installation/installing-images/>instrukcją producenta</a>.
 Podstawowe dane logowania to <code>pi</code> i hasło <code>raspberry</code>. Za pierwszym razem musimy się zalogować przy użyciu wyjścia hdmi i klawiatury fizycznej.
-Aby umożliwić wygodną dalszą pracę warto zadbać o możliwość zdalnego połączenia poprzez włączenie <a href=https://www.raspberrypi.org/documentation/remote-access/ssh/>usługi ssh na malinie</a>.</p><p>Dodatkowo zakładam, że kod napisany w rust będę uruchamiał na swoim laptopie z linuxem.
+Aby umożliwić wygodną dalszą pracę warto zadbać o możliwość zdalnego połączenia poprzez włączenie <a href=https://www.raspberrypi.org/documentation/remote-access/ssh/>usługi ssh na malinie</a>.</p>
+<p>Dodatkowo zakładam, że kod napisany w rust będę uruchamiał na swoim laptopie z linuxem.
 Możliwe jest wykonanie tego samego procesu używając dowolnego systemu a nawet na samej malinie.
-Wybieram model pracy z kompilacją na swoim laptopie ze względu na czas kompilacji i obecność wszystkich wymaganych narzędzi.</p><p>Wymagane narzędzia do pracy z kodem w rust:</p><ul><li>narzędzia do <a href=https://rustup.rs/>kompilacji rust</a></li><li>dowolny edytor tekstu, polecam VScode z wtyczką Rust Analyzer</li><li>ssh i scp do połączenia zdalnego i przesłania skompilowanego projektu</li></ul><h2 id=czas-zakasaćrękawy>Czas zakasać rękawy</h2><p>Do maliny podłączamy taśmę gpio jak na zdjęciu:</p><figure class=img-sm><img src=/images/rustypi/leds/ta%c5%9bma.jpg></figure><p>A następnie taśmę do płytki rozszerzeń i zamontować ją na płytce stykowej.
-Pełen układ jest widoczny poniżej:</p><figure class=img-sm><img src=/images/rustypi/leds/led_bb.svg></figure><p>Oraz na zdjęciu</p><figure class=img-sm><img src=/images/rustypi/leds/uk%c5%82ad.jpg></figure><ul><li><strong>Pin GPIO23</strong> jest połączony czerwonym przewodem z szyną dodatnią</li><li><strong>PIN GND</strong> jest połączony z szyną ujemną</li><li>dioda LED (krótsza nóżka powinna być połączona z ujemną szyną)</li><li>rezystor o wartości 4,7K ohm (taki miałem pod ręką)</li><li>przewód zamykający obwód</li></ul><p>Aby przetestować układ możemy uruchomić skrypt (na malinie):</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>cat <span style=color:#f92672>&lt;&lt;</span>EOF <span style=color:#f92672>&gt;</span> led<span style=color:#f92672>.</span>py
+Wybieram model pracy z kompilacją na swoim laptopie ze względu na czas kompilacji i obecność wszystkich wymaganych narzędzi.</p>
+<p>Wymagane narzędzia do pracy z kodem w rust:</p>
+<ul>
+<li>narzędzia do <a href=https://rustup.rs/>kompilacji rust</a></li>
+<li>dowolny edytor tekstu, polecam VScode z wtyczką Rust Analyzer</li>
+<li>ssh i scp do połączenia zdalnego i przesłania skompilowanego projektu</li>
+</ul>
+<h2 id=czas-zakasaćrękawy>Czas zakasać rękawy</h2>
+<p>Do maliny podłączamy taśmę gpio jak na zdjęciu:</p>
+<figure class=img-sm><img src=/images/rustypi/leds/ta%c5%9bma.jpg>
+</figure>
+<p>A następnie taśmę do płytki rozszerzeń i zamontować ją na płytce stykowej.
+Pełen układ jest widoczny poniżej:</p>
+<figure class=img-sm><img src=/images/rustypi/leds/led_bb.svg>
+</figure>
+<p>Oraz na zdjęciu</p>
+<figure class=img-sm><img src=/images/rustypi/leds/uk%c5%82ad.jpg>
+</figure>
+<ul>
+<li><strong>Pin GPIO23</strong> jest połączony czerwonym przewodem z szyną dodatnią</li>
+<li><strong>PIN GND</strong> jest połączony z szyną ujemną</li>
+<li>dioda LED (krótsza nóżka powinna być połączona z ujemną szyną)</li>
+<li>rezystor o wartości 4,7K ohm (taki miałem pod ręką)</li>
+<li>przewód zamykający obwód</li>
+</ul>
+<p>Aby przetestować układ możemy uruchomić skrypt (na malinie):</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>cat <span style=color:#f92672>&lt;&lt;</span>EOF <span style=color:#f92672>&gt;</span> led<span style=color:#f92672>.</span>py
 <span style=color:#f92672>from</span> gpiozero <span style=color:#f92672>import</span> LED
 
 <span style=color:#f92672>from</span> time <span style=color:#f92672>import</span> sleep
 
 led <span style=color:#f92672>=</span> LED(<span style=color:#ae81ff>23</span>)
 
-<span style=color:#66d9ef>while</span> True:
+<span style=color:#66d9ef>while</span> <span style=color:#66d9ef>True</span>:
    led<span style=color:#f92672>.</span>on()
    sleep(<span style=color:#ae81ff>1</span>)
    led<span style=color:#f92672>.</span>off()
@@ -25,13 +148,27 @@ EOF
 python led<span style=color:#f92672>.</span>py
 </code></pre></div><p>Dioda powinna zacząć migać z przerwami 1 sekundy.
 Aby przerwać program należy nacisnąć klawisze CTRL+C.
-W tym momencie dioda przestanie się palić.</p><h2 id=ale-co-właściwie-sięstało>Ale co właściwie się stało</h2><p>Aby zrozumieć co właściwie się dzieje można przeczytać kod źródłowy, <a href=https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf>dokumentację</a> albo&mldr; Hmmm, zaimplementować całość ręcznie w C (po raz pierwszy w życiu).</p><p>Wejście wyście ogólnego przeznaczenia - GPIO to cyfrowy interfejs komunikacji między elementami mikroprocesora a urządzeniami peryferyjnymi jak nasza dioda. Interfejs ten jest dostępny dla procesora jako zakres adresów w pamięci.</p><p>Istnieją dwa sposoby komunikacji:</p><ul><li><code>/dev/mem</code> (oraz bardziej bezpieczny <code>/dev/gpiomem</code>)</li><li><code>sysfs</code> - pseudo system plików dostarczany wraz z jądrem linuksa</li></ul><p>Ostatni sposób jest bardzo prosty i polega na manipulowaniu plikami:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>echo <span style=color:#ae81ff>23</span> &gt; /sys/class/gpio/export
+W tym momencie dioda przestanie się palić.</p>
+<h2 id=ale-co-właściwie-sięstało>Ale co właściwie się stało</h2>
+<p>Aby zrozumieć co właściwie się dzieje można przeczytać kod źródłowy, <a href=https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf>dokumentację</a> albo&mldr; Hmmm, zaimplementować całość ręcznie w C (po raz pierwszy w życiu).</p>
+<p>Wejście wyście ogólnego przeznaczenia - GPIO to cyfrowy interfejs komunikacji między elementami mikroprocesora a urządzeniami peryferyjnymi jak nasza dioda. Interfejs ten jest dostępny dla procesora jako zakres adresów w pamięci.</p>
+<p>Istnieją dwa sposoby komunikacji:</p>
+<ul>
+<li><code>/dev/mem</code> (oraz bardziej bezpieczny <code>/dev/gpiomem</code>)</li>
+<li><code>sysfs</code> - pseudo system plików dostarczany wraz z jądrem linuksa</li>
+</ul>
+<p>Ostatni sposób jest bardzo prosty i polega na manipulowaniu plikami:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>echo <span style=color:#ae81ff>23</span> &gt; /sys/class/gpio/export
 echo out &gt; /sys/class/gpio/gpio23/direction 
 echo <span style=color:#ae81ff>1</span> &gt; /sys/class/gpio/gpio23/value
 echo <span style=color:#ae81ff>0</span> &gt; /sys/class/gpio/gpio23/value
 </code></pre></div><p>Za zapalanie naszej diody odpowiada w tym przypadku kernel. Jednak wadą jest brak kontroli nad momentem wykonania operacji.
-Nie ma to wielkiego znaczenia kiedy chcemy zapalać diodę LED, ale może mieć ogromne znaczenie, jeżeli nasze układy staną się bardziej złożone i zależne od czasu.</p><p>Aby sterować w naszym programie pinem GPIO użyjemy pierwszego sposobu przy użyciu pliku <code>/dev/gpiomem</code>. W pierwszej kolejnośći należy otworzyć jeden ze wskazanych plików i użyć wywołania systemowego <code>mmap</code> które spowoduje, że system odwzoruje ten plik w przestrzeni adresowej pamięci procesu.</p><p>Od tego momentu plik z perspektywy naszego programu wygląda jak zwykła tablica bajtów, nie musimy wykorzystywać innych wywołań systemowych do odczytu czy zapisu.</p><p>Ufff&mldr; Dużo gadania, ale czy ten super prosty skrypt pythonowy też musiał się tak męczyć?
-Żeby to sprawdzić bez wczytywania się w dokumentację biblioteki czy kodu możemy wykorzystać system operacyjny.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pi@raspberrypi:~ $ python led.py 
+Nie ma to wielkiego znaczenia kiedy chcemy zapalać diodę LED, ale może mieć ogromne znaczenie, jeżeli nasze układy staną się bardziej złożone i zależne od czasu.</p>
+<p>Aby sterować w naszym programie pinem GPIO użyjemy pierwszego sposobu przy użyciu pliku <code>/dev/gpiomem</code>. W pierwszej kolejnośći należy otworzyć jeden ze wskazanych plików i użyć wywołania systemowego <code>mmap</code> które spowoduje, że system odwzoruje ten plik w przestrzeni adresowej pamięci procesu.</p>
+<p>Od tego momentu plik z perspektywy naszego programu wygląda jak zwykła tablica bajtów, nie musimy wykorzystywać innych wywołań systemowych do odczytu czy zapisu.</p>
+<p>Ufff&mldr; Dużo gadania, ale czy ten super prosty skrypt pythonowy też musiał się tak męczyć?
+Żeby to sprawdzić bez wczytywania się w dokumentację biblioteki czy kodu możemy wykorzystać system operacyjny.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pi@raspberrypi:~ $ python led.py 
 ^CTraceback <span style=color:#f92672>(</span>most recent call last<span style=color:#f92672>)</span>:
   File <span style=color:#e6db74>&#34;led.py&#34;</span>, line 11, in &lt;module&gt;
     sleep<span style=color:#f92672>(</span>1<span style=color:#f92672>)</span>
@@ -64,7 +201,9 @@ python  <span style=color:#ae81ff>4178</span>   pi    2u   CHR  136,0      0t0  
 python  <span style=color:#ae81ff>4178</span>   pi    3u   CHR  247,0      0t0   <span style=color:#ae81ff>1116</span> /dev/gpiomem
 </code></pre></div><p>Włączamy nasz skrypt i naciskamy CTRL+Z wstrzymując proces poprzez wysłanie sygnału <code>SIGSTOP</code>.
 Następnie używając polecenia <code>lsof -p $(pidof python)</code> znajdujemy listę plików otwartych przez proces.
-Ha! <code>/dev/gpiomem</code> znajduje się na liście!</p><p>W takim razie spróbujemy ręcznie używając C:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdio.h&gt;    // for printf</span><span style=color:#75715e>
+Ha! <code>/dev/gpiomem</code> znajduje się na liście!</p>
+<p>W takim razie spróbujemy ręcznie używając C:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdio.h&gt;    // for printf</span><span style=color:#75715e>
 </span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;fcntl.h&gt;    // for open</span><span style=color:#75715e>
 </span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/mman.h&gt; // for mmap</span><span style=color:#75715e>
 </span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
@@ -131,21 +270,34 @@ Ha! <code>/dev/gpiomem</code> znajduje się na liście!</p><p>W takim razie spr�
     <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
 }
 
-</code></pre></div><p>Układ scalony BCM2835 posiada 41 rejestrów, każdy z nich ma 32 bity. Aby mieć do nich dostęp w pierwszej kolejności otwieramy plik <code>/dev/gpiomem</code></p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#66d9ef>int</span> fd <span style=color:#f92672>=</span> open(<span style=color:#e6db74>&#34;/dev/gpiomem&#34;</span>, O_RDWR);
-</code></pre></div><p>Oraz używamy <code>mmap</code> aby mieć możliwość operowania na jego zawartości:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>    <span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> <span style=color:#f92672>*</span>gpio <span style=color:#f92672>=</span> (<span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> <span style=color:#f92672>*</span>)mmap(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>4096</span>,
+</code></pre></div><p>Układ scalony BCM2835 posiada 41 rejestrów, każdy z nich ma 32 bity. Aby mieć do nich dostęp w pierwszej kolejności otwieramy plik <code>/dev/gpiomem</code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#66d9ef>int</span> fd <span style=color:#f92672>=</span> open(<span style=color:#e6db74>&#34;/dev/gpiomem&#34;</span>, O_RDWR);
+</code></pre></div><p>Oraz używamy <code>mmap</code> aby mieć możliwość operowania na jego zawartości:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>    <span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> <span style=color:#f92672>*</span>gpio <span style=color:#f92672>=</span> (<span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> <span style=color:#f92672>*</span>)mmap(<span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>4096</span>,
                                               PROT_READ <span style=color:#f92672>+</span> PROT_WRITE, MAP_SHARED,
                                               fd, <span style=color:#ae81ff>0</span>);
 
-</code></pre></div><p>Zgodnie z dokumentacją aby odczytać stan danego pina (w naszym przypadku 23) należy odczytać odpowiedni bit rejestru <code>GPLEV0</code> który posiada adres <code>0x 7E20 0034</code> (offset <code>0x34</code>):</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#66d9ef>int</span> state <span style=color:#f92672>=</span> (gpio[GPLEV0 <span style=color:#f92672>/</span> u32_offset] <span style=color:#f92672>&gt;&gt;</span> gpio_num) <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>1</span>;
+</code></pre></div><p>Zgodnie z dokumentacją aby odczytać stan danego pina (w naszym przypadku 23) należy odczytać odpowiedni bit rejestru <code>GPLEV0</code> który posiada adres <code>0x 7E20 0034</code> (offset <code>0x34</code>):</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=color:#66d9ef>int</span> state <span style=color:#f92672>=</span> (gpio[GPLEV0 <span style=color:#f92672>/</span> u32_offset] <span style=color:#f92672>&gt;&gt;</span> gpio_num) <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>1</span>;
 </code></pre></div><p>Jeżeli chcemy zmienić stan danego pina musimy najpierw zmienić jego tryb na wyjściowy.
 Zgodnie z dokumentacją każdy z 54 pinów posiada przynajmniej dwie funkcje.
-Przykładowo, żeby ustawić tryb pracy pina 23 (a pozostałych na domyślną wartość 000) należy ustawić wartość rejestru <code>GPFSEL2</code> (rejestr dla pinów 20-29) na 001</p><p>00000000000000000000<strong>001</strong>000000000</p><p>W kodzie przed ustawieniem trybu wyjściowego najpierw ustawiam na tryb wejściowy podążając za poradami z przykładów.
-Następnie aby ustawić wartość pina na wysoką należy ustawić odpowiedni bit w rejestrze <code>GPSET{n}</code> gdzie <code>n==0</code> dla pinów 0-31.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>gpio[GPSET0 <span style=color:#f92672>/</span> u32_offset] <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;&lt;</span> gpio_num;
-</code></pre></div><p>Aby zgasić naszą diodę należy ustawić odpowiedni bit innego rejestru: <code>GPCLR{n}</code> gdzie <code>n==0</code> dla pinów 0-31:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>gpio[GPCLR0<span style=color:#f92672>/</span>u32_offset] <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;&lt;</span> gpio_num;
-</code></pre></div><p>Plik możemy skompilować na malinie używając bibliotek dostarczanych razem z systemem operacyjnym:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pi@raspberrypi:~ $ gcc led.c -o led
+Przykładowo, żeby ustawić tryb pracy pina 23 (a pozostałych na domyślną wartość 000) należy ustawić wartość rejestru <code>GPFSEL2</code> (rejestr dla pinów 20-29) na 001</p>
+<p>00000000000000000000<strong>001</strong>000000000</p>
+<p>W kodzie przed ustawieniem trybu wyjściowego najpierw ustawiam na tryb wejściowy podążając za poradami z przykładów.
+Następnie aby ustawić wartość pina na wysoką należy ustawić odpowiedni bit w rejestrze <code>GPSET{n}</code> gdzie <code>n==0</code> dla pinów 0-31.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>gpio[GPSET0 <span style=color:#f92672>/</span> u32_offset] <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;&lt;</span> gpio_num;
+</code></pre></div><p>Aby zgasić naszą diodę należy ustawić odpowiedni bit innego rejestru: <code>GPCLR{n}</code> gdzie <code>n==0</code> dla pinów 0-31:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c>gpio[GPCLR0<span style=color:#f92672>/</span>u32_offset] <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;&lt;</span> gpio_num;
+</code></pre></div><p>Plik możemy skompilować na malinie używając bibliotek dostarczanych razem z systemem operacyjnym:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pi@raspberrypi:~ $ gcc led.c -o led
 pi@raspberrypi:~ $ ./led 
-</code></pre></div><h2 id=co-jeżeli-nie-jestem-wielkim-fanem-c>Co jeżeli nie jestem wielkim fanem C?</h2><p>To już w sumie 3 różne sposoby na wykonywanie tej samej - mało potrzebnej czynności.
-Co jeżeli manipulowanie plikami nam nie odpowiada, nie chcemy tracić zalet rozwiązania z C a języki interpretowane zachęcają nas tak samo jak głaskanie jeża pod włos? <strong>Pora na kolejną technologię!</strong></p><figure class=img-lg><img src=/images/rystypi/leds/it-crowd-gif-4.gif></figure><p>Aby rozpocząć projekt na maszynie na której chcemy budować kod należy stworzyć nowy projekt:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># tworzymy nowy projekt w katalogu rusty_led</span>
+</code></pre></div><h2 id=co-jeżeli-nie-jestem-wielkim-fanem-c>Co jeżeli nie jestem wielkim fanem C?</h2>
+<p>To już w sumie 3 różne sposoby na wykonywanie tej samej - mało potrzebnej czynności.
+Co jeżeli manipulowanie plikami nam nie odpowiada, nie chcemy tracić zalet rozwiązania z C a języki interpretowane zachęcają nas tak samo jak głaskanie jeża pod włos? <strong>Pora na kolejną technologię!</strong></p>
+<figure class=img-lg><img src=/images/rystypi/leds/it-crowd-gif-4.gif>
+</figure>
+<p>Aby rozpocząć projekt na maszynie na której chcemy budować kod należy stworzyć nowy projekt:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># tworzymy nowy projekt w katalogu rusty_led</span>
 cargo new rusty_led --bin
 cd rusty_led
 
@@ -156,15 +308,18 @@ rustup target add armv7-unknown-linux-gnueabihf
 <span style=color:#75715e># todo sprawdzić czy to jest potrzebne</span>
 sudo apt-get install -qq gcc-arm-linux-gnueabihf
 tree .
-</code></pre></div><p>Musimy dodać w <code>~/.cargo/config</code> następującą treść:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>mkdir .cargo
+</code></pre></div><p>Musimy dodać w <code>~/.cargo/config</code> następującą treść:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>mkdir .cargo
 cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
 </span><span style=color:#e6db74>[target.armv7-unknown-linux-gnueabihf]
 </span><span style=color:#e6db74>linker = &#34;arm-linux-gnueabihf-gcc&#34;
 </span><span style=color:#e6db74>EOF</span>
-</code></pre></div><p>Następnie możemy uruchomić kompilację:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cargo build --target armv7-unknown-linux-gnueabihf
+</code></pre></div><p>Następnie możemy uruchomić kompilację:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>cargo build --target armv7-unknown-linux-gnueabihf
 </code></pre></div><p>Gotowy plik wykonywalny jest dostępny w pliku <code>target/armv7-unknown-linux-gnueabihf/debug/rusty_led</code>.
 Aby go wykonać na malinie musimy go wysłać na malinę.
-Zakładając, że znamy adres ip maliny (w moim przypadku <code>192.168.8.103</code>) oraz, że skonfigurowaliśmy odpowiednie klucze prywatne i publiczne możemy go przesłać używając polecenia:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># przesyłamy plik</span>
+Zakładając, że znamy adres ip maliny (w moim przypadku <code>192.168.8.103</code>) oraz, że skonfigurowaliśmy odpowiednie klucze prywatne i publiczne możemy go przesłać używając polecenia:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># przesyłamy plik</span>
 scp target/armv7-unknown-linux-gnueabihf/debug/rusty_led pi@192.168.8.113:~/
 <span style=color:#75715e># uruchamiamy skompilowany plik wykonywalny</span>
 ssh pi@192.168.8.113 <span style=color:#e6db74>&#39;./rusty_led&#39;</span>
@@ -172,16 +327,18 @@ ssh pi@192.168.8.113 <span style=color:#e6db74>&#39;./rusty_led&#39;</span>
 <span style=color:#75715e>#   output:</span>
 <span style=color:#75715e>#   Hello, world!</span>
 </code></pre></div><p>Teraz należy dodać zależność do biblioteki która umożliwi nam używanie GPIO.
-Zeby to zrobić starczy dopisać do pliku <code>Cargo.toml</code> w sekcji <code>[dependencies]</code>:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>rppal</span> = <span style=color:#e6db74>&#34;0.11.3&#34;</span>
-</code></pre></div><p>A treść pliku <code>main.rs</code> zamienić:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::error::Error;
+Zeby to zrobić starczy dopisać do pliku <code>Cargo.toml</code> w sekcji <code>[dependencies]</code>:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>rppal</span> = <span style=color:#e6db74>&#34;0.11.3&#34;</span>
+</code></pre></div><p>A treść pliku <code>main.rs</code> zamienić:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::error::Error;
 <span style=color:#66d9ef>use</span> std::thread;
 <span style=color:#66d9ef>use</span> std::time::Duration;
 
 <span style=color:#66d9ef>use</span> rppal::gpio::Gpio;
 <span style=color:#66d9ef>use</span> rppal::system::DeviceInfo;
 
-<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span>dyn Error<span style=color:#f92672>&gt;&gt;</span> {
-    println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Działam na {}.&#34;</span>, DeviceInfo::new()<span style=color:#f92672>?</span>.model());
+<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>dyn</span> Error<span style=color:#f92672>&gt;&gt;</span> {
+    println!(<span style=color:#e6db74>&#34;Działam na {}.&#34;</span>, DeviceInfo::new()<span style=color:#f92672>?</span>.model());
 
     <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> pin <span style=color:#f92672>=</span> Gpio::new()<span style=color:#f92672>?</span>.get(<span style=color:#ae81ff>23</span>)<span style=color:#f92672>?</span>.into_output();
     pin.set_reset_on_drop(<span style=color:#66d9ef>true</span>);
@@ -196,7 +353,8 @@ Zeby to zrobić starczy dopisać do pliku <code>Cargo.toml</code> w sekcji <cod
     Ok(())
 }
 </code></pre></div><p>Po skompilowaniu, przesłaniu i wykonaniu programu na malinie osiągamy analogiczny efekt do kodu z pythona i C.
-Jeżeli zaglądniemy dokładniej w kod źródłowy biblioteki rppal to zauważymy pewne podobieństwa do programu, który napisaliśmy w C:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>map_devgpiomem</span>() -&gt; Result<span style=color:#f92672>&lt;*</span><span style=color:#66d9ef>mut</span> <span style=color:#66d9ef>u32</span><span style=color:#f92672>&gt;</span> {
+Jeżeli zaglądniemy dokładniej w kod źródłowy biblioteki rppal to zauważymy pewne podobieństwa do programu, który napisaliśmy w C:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>map_devgpiomem</span>() -&gt; Result<span style=color:#f92672>&lt;*</span><span style=color:#66d9ef>mut</span> <span style=color:#66d9ef>u32</span><span style=color:#f92672>&gt;</span> {
         <span style=color:#75715e>// Open /dev/gpiomem with read/write/sync flags. This might fail if
 </span><span style=color:#75715e></span>        <span style=color:#75715e>// /dev/gpiomem doesn&#39;t exist (&lt; Raspbian Jessie), or /dev/gpiomem
 </span><span style=color:#75715e></span>        <span style=color:#75715e>// doesn&#39;t have the appropriate permissions, or the current user is
@@ -225,7 +383,8 @@ Jeżeli zaglądniemy dokładniej w kod źródłowy biblioteki rppal to zauważym
 
         Ok(gpiomem_ptr <span style=color:#66d9ef>as</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>mut</span> <span style=color:#66d9ef>u32</span>)
     }
-</code></pre></div><p>Hmmm pomijając o wiele ładniejszą kontrolę błędów kod jest właściwie taki sam! Wykorzystuje crate (biblioteka w środowisku rusta) <code>libc</code> do wywołania w bloku <code>unsafe</code> tego samego wywołania systemowego. Podobnie jest w przypadku pozostałych fragmentów, przykładowo ustawienia wartości pin:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>const</span> GPSET0: <span style=color:#66d9ef>usize</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x1c</span> <span style=color:#f92672>/</span> std::mem::size_of::<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u32</span><span style=color:#f92672>&gt;</span>();
+</code></pre></div><p>Hmmm pomijając o wiele ładniejszą kontrolę błędów kod jest właściwie taki sam! Wykorzystuje crate (biblioteka w środowisku rusta) <code>libc</code> do wywołania w bloku <code>unsafe</code> tego samego wywołania systemowego. Podobnie jest w przypadku pozostałych fragmentów, przykładowo ustawienia wartości pin:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>const</span> GPSET0: <span style=color:#66d9ef>usize</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x1c</span> <span style=color:#f92672>/</span> std::mem::size_of::<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u32</span><span style=color:#f92672>&gt;</span>();
 
     <span style=color:#75715e>// some parts omitted
 </span><span style=color:#75715e></span>
@@ -235,25 +394,30 @@ Jeżeli zaglądniemy dokładniej w kod źródłowy biblioteki rppal to zauważym
         self.write(offset, <span style=color:#ae81ff>1</span> <span style=color:#f92672>&lt;&lt;</span> shift);
     }
 </code></pre></div><p>Jest jeden problem, zachowanie naszego układu elektronicznego po wyjściu z programu jest niedeterministyczne (podobnie jak w przypadku programu w C). Przez wyjście mam na myśli naciśnięcie CTRL+C czyli wysłanie sygnału <code>SIGINT</code>.
-Obydwa programy (C i rust) nie czyszczą w żaden sposób stanu, dioda zostaje włączona jeżeli w momencie wysłania sygnału była właśnie w takim stanie.</p><p>Czemu tak jest? Jedynie biblioteka w pythonie którą używaliśmy posiada taką funkcjonalność.
-Fragment kodu który za nią odpowiada można znaleźć w pliku <code>devices.py</code></p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>_devices_shutdown</span>():
-    <span style=color:#66d9ef>if</span> Device<span style=color:#f92672>.</span>pin_factory <span style=color:#f92672>is</span> <span style=color:#f92672>not</span> None:
+Obydwa programy (C i rust) nie czyszczą w żaden sposób stanu, dioda zostaje włączona jeżeli w momencie wysłania sygnału była właśnie w takim stanie.</p>
+<p>Czemu tak jest? Jedynie biblioteka w pythonie którą używaliśmy posiada taką funkcjonalność.
+Fragment kodu który za nią odpowiada można znaleźć w pliku <code>devices.py</code></p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>_devices_shutdown</span>():
+    <span style=color:#66d9ef>if</span> Device<span style=color:#f92672>.</span>pin_factory <span style=color:#f92672>is</span> <span style=color:#f92672>not</span> <span style=color:#66d9ef>None</span>:
         <span style=color:#66d9ef>with</span> Device<span style=color:#f92672>.</span>pin_factory<span style=color:#f92672>.</span>_res_lock:
             reserved_devices <span style=color:#f92672>=</span> {
                 dev
                 <span style=color:#66d9ef>for</span> ref_list <span style=color:#f92672>in</span> Device<span style=color:#f92672>.</span>pin_factory<span style=color:#f92672>.</span>_reservations<span style=color:#f92672>.</span>values()
                 <span style=color:#66d9ef>for</span> ref <span style=color:#f92672>in</span> ref_list
                 <span style=color:#66d9ef>for</span> dev <span style=color:#f92672>in</span> (ref(),)
-                <span style=color:#66d9ef>if</span> dev <span style=color:#f92672>is</span> <span style=color:#f92672>not</span> None
+                <span style=color:#66d9ef>if</span> dev <span style=color:#f92672>is</span> <span style=color:#f92672>not</span> <span style=color:#66d9ef>None</span>
             }
         <span style=color:#66d9ef>for</span> dev <span style=color:#f92672>in</span> reserved_devices:
             dev<span style=color:#f92672>.</span>close()
         Device<span style=color:#f92672>.</span>pin_factory<span style=color:#f92672>.</span>close()
-        Device<span style=color:#f92672>.</span>pin_factory <span style=color:#f92672>=</span> None
+        Device<span style=color:#f92672>.</span>pin_factory <span style=color:#f92672>=</span> <span style=color:#66d9ef>None</span>
 </code></pre></div><p>Bardzo sympatyczna funkcjonalność tylko co jeżeli jej nie chcemy?
-Okazuje się, że nie jest to łatwe, o czym można poczytać <a href=https://github.com/gpiozero/gpiozero/issues/707>tu</a> czy <a href=https://stackoverflow.com/questions/53618198/>tu</a>.</p><p>Co jednak jeżeli chcemy dodać podobną funkcjonalność do naszego nowego kodu w rust?
-Zgodnie z dokumentacją crate <a href=https://docs.rs/rppal/0.11.3/rppal/gpio/index.html#pins>rppal</a> pin powinien zostać przywrócony do stanu oryginalnego w momencie kiedy zgodnie z zasadami własności obiekt zostaje porzucony. Ale co właściwie oznacza porzucenie?</p><p>Rust posiada innowacyjne podejście do zarządzania pamięcią poprzez wprowadzenie modelu własności.
-Zarządzanie pamięcią nie jest jak w przypadku C czy C++ zarządzane ręcznie przez programistę, czy jak w javie czy go przez osobny obiekt nazywany garbage collection. O momencie zwalniania pamięci decyduje zestaw reguł, które kompilator częsciowo jest w stanie wywnioskować sam na podstawie ogólnych zasad lub z użyciem parametrów przekazywanych przez programistę w nieoczywistych przypadkach.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::thread;
+Okazuje się, że nie jest to łatwe, o czym można poczytać <a href=https://github.com/gpiozero/gpiozero/issues/707>tu</a> czy <a href=https://stackoverflow.com/questions/53618198/>tu</a>.</p>
+<p>Co jednak jeżeli chcemy dodać podobną funkcjonalność do naszego nowego kodu w rust?
+Zgodnie z dokumentacją crate <a href=https://docs.rs/rppal/0.11.3/rppal/gpio/index.html#pins>rppal</a> pin powinien zostać przywrócony do stanu oryginalnego w momencie kiedy zgodnie z zasadami własności obiekt zostaje porzucony. Ale co właściwie oznacza porzucenie?</p>
+<p>Rust posiada innowacyjne podejście do zarządzania pamięcią poprzez wprowadzenie modelu własności.
+Zarządzanie pamięcią nie jest jak w przypadku C czy C++ zarządzane ręcznie przez programistę, czy jak w javie czy go przez osobny obiekt nazywany garbage collection. O momencie zwalniania pamięci decyduje zestaw reguł, które kompilator częsciowo jest w stanie wywnioskować sam na podstawie ogólnych zasad lub z użyciem parametrów przekazywanych przez programistę w nieoczywistych przypadkach.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::thread;
 <span style=color:#66d9ef>use</span> std::time::Duration;
 
 <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>HasDrop</span>{
@@ -263,7 +427,7 @@ Zarządzanie pamięcią nie jest jak w przypadku C czy C++ zarządzane ręcznie
 <span style=color:#75715e>// 
 </span><span style=color:#75715e></span><span style=color:#66d9ef>impl</span> Drop <span style=color:#66d9ef>for</span> HasDrop {
     <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>drop</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) {
-        println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Dropping {}&#34;</span>, self.name);
+        println!(<span style=color:#e6db74>&#34;Dropping {}&#34;</span>, self.name);
     }
 }
 
@@ -274,7 +438,7 @@ Zarządzanie pamięcią nie jest jak w przypadku C czy C++ zarządzane ręcznie
 </span><span style=color:#75715e></span>    <span style=color:#66d9ef>let</span> _y <span style=color:#f92672>=</span> HasDrop{name: <span style=color:#ae81ff>2</span>};
     thread::sleep(Duration::from_millis(<span style=color:#ae81ff>5000</span>));
 } <span style=color:#75715e>// _ y w tym miejscu jeżeli wcześniej nie wysłany zostanie SIGINT
-</span></code></pre></div><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ cargo -q run --example drop
+</span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ cargo -q run --example drop
 Dropping <span style=color:#ae81ff>1</span>
 Dropping <span style=color:#ae81ff>2</span>
 $ cargo -q run --example drop
@@ -282,7 +446,8 @@ Dropping <span style=color:#ae81ff>1</span>
 ^C
 <span style=color:#75715e># po uzyskaniu SIGINT brak wpisu o wykonaniu metody drop na y</span>
 </code></pre></div><p>Model ten daje ogromne korzyści i może być wykorzystywana również do ciekawych zastosowań, jak na przykład oddawanie połączenia do bazy danych do pooli po jego wykorzystaniu bez pisania niepotrzebnego kodu.
-W ten sam sposób zorganizowane jest przywracanie stanu oryginalnego dla pinów w rppal:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>            <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>drop</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) {
+W ten sam sposób zorganizowane jest przywracanie stanu oryginalnego dla pinów w rppal:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>            <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>drop</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) {
                 <span style=color:#66d9ef>if</span> <span style=color:#f92672>!</span>self.reset_on_drop {
                     <span style=color:#66d9ef>return</span>;
                 }
@@ -296,8 +461,10 @@ W ten sam sposób zorganizowane jest przywracanie stanu oryginalnego dla pinów 
                 }
             }
 </code></pre></div><p>Jednak jak udowodniliśmy wyżej metoda drop nie jest wołana w sytuacji kiedy przyczyną wyjścia z programu był sygnał <code>SIGINT</code>.
-Czy jesteśmy w stanie coś z tym zrobić? Zgodnie z sugestią autora biblioteki musimy ręcznie obsłużyć odpowiedni sygnał. W pierwszej kolejności dodajemy nową bibliotekę do Cargo.toml:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>ctrlc</span> = <span style=color:#e6db74>&#34;3.1.4&#34;</span>
-</code></pre></div><p>A następnie modyfikujemy nasz program:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::error::Error;
+Czy jesteśmy w stanie coś z tym zrobić? Zgodnie z sugestią autora biblioteki musimy ręcznie obsłużyć odpowiedni sygnał. W pierwszej kolejności dodajemy nową bibliotekę do Cargo.toml:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>ctrlc</span> = <span style=color:#e6db74>&#34;3.1.4&#34;</span>
+</code></pre></div><p>A następnie modyfikujemy nasz program:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::error::Error;
 <span style=color:#66d9ef>use</span> std::thread;
 <span style=color:#66d9ef>use</span> std::time::Duration;
 
@@ -308,16 +475,16 @@ Czy jesteśmy w stanie coś z tym zrobić? Zgodnie z sugestią autora biblioteki
 
 <span style=color:#75715e>//https://docs.golemparts.com/rppal/0.11.2/rppal/gpio/struct.OutputPin.html#note
 </span><span style=color:#75715e></span>
-<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span>dyn Error<span style=color:#f92672>&gt;&gt;</span> {
-    println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Działam na {}.&#34;</span>, DeviceInfo::new()<span style=color:#f92672>?</span>.model());
+<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>dyn</span> Error<span style=color:#f92672>&gt;&gt;</span> {
+    println!(<span style=color:#e6db74>&#34;Działam na {}.&#34;</span>, DeviceInfo::new()<span style=color:#f92672>?</span>.model());
 
     <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> pin <span style=color:#f92672>=</span> Gpio::new()<span style=color:#f92672>?</span>.get(<span style=color:#ae81ff>23</span>)<span style=color:#f92672>?</span>.into_output();
     <span style=color:#66d9ef>let</span> closed <span style=color:#f92672>=</span> Arc::new(Mutex::new(<span style=color:#66d9ef>false</span>));
 
     <span style=color:#66d9ef>let</span> closed_handler <span style=color:#f92672>=</span> closed.clone();
     ctrlc::set_handler(<span style=color:#66d9ef>move</span> <span style=color:#f92672>||</span> {
-        println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;received Ctrl+C!&#34;</span>);
-        println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;set to closed&#34;</span>);
+        println!(<span style=color:#e6db74>&#34;received Ctrl+C!&#34;</span>);
+        println!(<span style=color:#e6db74>&#34;set to closed&#34;</span>);
         <span style=color:#f92672>*</span>closed_handler.lock().unwrap() <span style=color:#f92672>=</span> <span style=color:#66d9ef>true</span>;
     })<span style=color:#f92672>?</span>;
 
@@ -328,15 +495,17 @@ Czy jesteśmy w stanie coś z tym zrobić? Zgodnie z sugestią autora biblioteki
         thread::sleep(Duration::from_millis(<span style=color:#ae81ff>500</span>));
     }
 
-    println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;setting to low&#34;</span>);
+    println!(<span style=color:#e6db74>&#34;setting to low&#34;</span>);
     pin.set_low();
     Ok(())
 }
-</code></pre></div><p>Dodaliśmy zmienną <code>closed</code> zabezpieczoną <code>Arc</code> - mądrym wskaźnikiem pozwalającym na dzielenie fragmentu pamięci pomiędzy wątkami i <code>Mutex</code> który zabezpiecza do niego dostęp. Czemu nie dodamy po prostu ustawienia stanu pina na niski w handlerze sygnału?</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    ctrlc::set_handler(<span style=color:#66d9ef>move</span> <span style=color:#f92672>||</span> {
-        println<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;received Ctrl+C!&#34;</span>);
+</code></pre></div><p>Dodaliśmy zmienną <code>closed</code> zabezpieczoną <code>Arc</code> - mądrym wskaźnikiem pozwalającym na dzielenie fragmentu pamięci pomiędzy wątkami i <code>Mutex</code> który zabezpiecza do niego dostęp. Czemu nie dodamy po prostu ustawienia stanu pina na niski w handlerze sygnału?</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    ctrlc::set_handler(<span style=color:#66d9ef>move</span> <span style=color:#f92672>||</span> {
+        println!(<span style=color:#e6db74>&#34;received Ctrl+C!&#34;</span>);
         pin.set_low();
     })<span style=color:#f92672>?</span>;
-</code></pre></div><p>Odpowiedź brzmi ponieważ kompilator rusta nam na to nie pozwoli. Otrzymamy błąd:</p><pre><code>error[E0382]: borrow of moved value: `pin`
+</code></pre></div><p>Odpowiedź brzmi ponieważ kompilator rusta nam na to nie pozwoli. Otrzymamy błąd:</p>
+<pre tabindex=0><code>error[E0382]: borrow of moved value: `pin`
   --&gt; src/main.rs:26:9
    |
 15 |     let mut pin = Gpio::new()?.get(23)?.into_output();
@@ -353,8 +522,48 @@ Czy jesteśmy w stanie coś z tym zrobić? Zgodnie z sugestią autora biblioteki
 
 error: aborting due to 2 previous errors
 </code></pre><p>Czyli zadziałają zasady własności które ochronią nas przed błędem, który nie zostałby wychwycony w analogicznym kodzie w C. Na czym polega błąd? Kod wykonywany po otrzymaniu sygnału <code>SIGINT</code> jest wykonywany w innym wątku niż pętla <code>while</code>
-co oznacza, że potencjalnie wystąpiłby wyścig i zachowanie programu mogło by być różne.</p><h2 id=wnioski>Wnioski</h2><p>Nauczyliśmy się w jaki sposób można sterować pinami maliny oraz wielu sposobów zapalania diody LED.
+co oznacza, że potencjalnie wystąpiłby wyścig i zachowanie programu mogło by być różne.</p>
+<h2 id=wnioski>Wnioski</h2>
+<p>Nauczyliśmy się w jaki sposób można sterować pinami maliny oraz wielu sposobów zapalania diody LED.
 Z moich doświadczeń z budowania tak prostego ukłądu wynika, że potrzebna jest duża uwaga, żeby nie popełnić błędu.
 Łatwiej jest znaleźć i rozwiązać błąd jeżeli taki się pojawi w prostszym układzie.
-Wraz ze zwiększaniem się rozmiarów kodu sterującego coraz bardziej zaawansowanymi układami prawdopodobieństwo błędów się powiększa.</p><p>Dlatego w mojej ocenie używanie narzędzi jak rust ma ogromną przewagę nad C, w którym brakuje silnego typowania oraz obsługi błędów. Po drugiej stronie jest python, który bardzo pasuje do maliny, natomiast jego użyteczność zmniejsza się na mniejszych układach, gdzie dostępna pamięć jest zdecydowanie większym ograniczneniem.</p><ul class=pa0><li class=list><a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a></li><li class=list><a href=/tags/raspberry-pi class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a></li></ul><div class="mt6 instapaper_ignoref"><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
-var d=document,s=d.createElement('script');s.async=true;s.src='//'+"flakm-blog"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></div><aside class="w-30-l mt6-l"></aside></article></main><footer class="bg-black bottom-0 w-100 pa3" role=contentinfo><div class="flex justify-between"><a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>&copy; Copyright © 2020, Maciej Flak; all rights reserved. 2020</a><div></div></div></footer><script src=/dist/js/app.3fc0f988d21662902933.js></script></body></html>
+Wraz ze zwiększaniem się rozmiarów kodu sterującego coraz bardziej zaawansowanymi układami prawdopodobieństwo błędów się powiększa.</p>
+<p>Dlatego w mojej ocenie używanie narzędzi jak rust ma ogromną przewagę nad C, w którym brakuje silnego typowania oraz obsługi błędów. Po drugiej stronie jest python, który bardzo pasuje do maliny, natomiast jego użyteczność zmniejsza się na mniejszych układach, gdzie dostępna pamięć jest zdecydowanie większym ograniczneniem.</p>
+<script defer language=javascript type=text/javascript src=/js/add_anchors.js></script>
+<ul class=pa0>
+<li class="list di">
+<a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a>
+</li>
+<li class="list di">
+<a href=/tags/raspberry-pi class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a>
+</li>
+</ul>
+<div class="mt6 instapaper_ignoref">
+<div id=disqus_thread></div>
+<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//flakm-blog.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
+<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+</div>
+<aside class="w-30-l mt6-l">
+</aside>
+</article>
+</main>
+<footer class="bg-black bottom-0 w-100 pa3" role=contentinfo>
+<div class="flex justify-between">
+<a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>
+&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022
+</a>
+<div>
+<div class=ananke-socials>
+<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
+<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
+</span>
+<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
+</span></a>
+</div>
+</div>
+</div>
+</footer>
+</body>
+</html>

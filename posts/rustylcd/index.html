@@ -1,8 +1,171 @@
-<!doctype html><html lang=pl><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rustberry PI - LCD | FlakM blog</title><meta name=viewport content="width=device-width,minimum-scale=1"><meta name=generator content="Hugo 0.74.1"><meta name=ROBOTS content="INDEX, FOLLOW"><link href=/dist/css/app.4fc0b62e4b82c997bb0041217cd6b979.css rel=stylesheet><link rel=stylesheet href=/css/main.css><meta property="og:title" content="Rustberry PI - LCD"><meta property="og:description" content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem."><meta property="og:type" content="article"><meta property="og:url" content="https://flakm.github.io/posts/rustylcd/"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/20200719_122243.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/lcd_bb.svg"><meta property="article:published_time" content="2020-07-01T14:20:17+02:00"><meta property="article:modified_time" content="2020-07-01T14:20:17+02:00"><meta itemprop=name content="Rustberry PI - LCD"><meta itemprop=description content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem."><meta itemprop=datePublished content="2020-07-01T14:20:17+02:00"><meta itemprop=dateModified content="2020-07-01T14:20:17+02:00"><meta itemprop=wordCount content="2285"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/20200719_122243.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/lcd_bb.svg"><meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg"><meta name=twitter:title content="Rustberry PI - LCD"><meta name=twitter:description content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem."><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-172669006-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></head><body class="ma0 avenir bg-near-white production"><header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg)><div class="pb3-m pb6-l bg-black-60"><nav class="pv3 ph3 ph4-ns" role=navigation><div class="flex-l justify-between items-center center"><a href=/ class="f3 fw2 hover-white no-underline white-90 dib">FlakM blog</a><div class="flex-l items-center"><ul class="pl0 mr3"><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/ title="Home page">Home</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/links title="Materiały page">Materiały</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/about/ title="O mnie page">O mnie</a></li></ul></div></div></nav><div class="tc-l pv6 ph3 ph4-ns"><h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - LCD</h1></div></div></header><main class=pb7 role=main><article class="flex-l flex-wrap justify-between mw8 center ph3"><header class="mt4 w-100"><aside class="instapaper_ignoref b helvetica tracked">POSTS</aside><div id=sharing class=mt3><a href="https://www.facebook.com/sharer.php?u=https://flakm.github.io/posts/rustylcd/" class="facebook no-underline" aria-label="share on Facebook"><svg height="32" style="enable-background:new 0 0 67 67" viewBox="0 0 67 67" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765 50.32h6.744V33.998h4.499l.596-5.624h-5.095l.007-2.816c0-1.466.14-2.253 2.244-2.253h2.812V17.68h-4.5c-5.405.0-7.307 2.729-7.307 7.317v3.377h-3.369v5.625h3.369V50.32zM33 64C16.432 64 3 50.569 3 34S16.432 4 33 4s30 13.431 30 30S49.568 64 33 64z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></a><a href="https://twitter.com/share?url=https://flakm.github.io/posts/rustylcd/&text=Rustberry%20PI%20-%20LCD" class="twitter no-underline" aria-label="share on Twitter"><svg height="32" style="enable-background:new 0 0 67 67" viewBox="0 0 67 67" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167 22.283c-2.619.953-4.274 3.411-4.086 6.101l.063 1.038-1.048-.127c-3.813-.487-7.145-2.139-9.974-4.915l-1.383-1.377-.356 1.017c-.754 2.267-.272 4.661 1.299 6.271.838.89.649 1.017-.796.487-.503-.169-.943-.296-.985-.233-.146.149.356 2.076.754 2.839.545 1.06 1.655 2.097 2.871 2.712l1.027.487-1.215.021c-1.173.0-1.215.021-1.089.467.419 1.377 2.074 2.839 3.918 3.475l1.299.444-1.131.678c-1.676.976-3.646 1.526-5.616 1.568C19.775 43.256 19 43.341 19 43.405c0 .211 2.557 1.397 4.044 1.864 4.463 1.377 9.765.783 13.746-1.568 2.829-1.673 5.657-5 6.978-8.221.713-1.716 1.425-4.851 1.425-6.354.0-.975.063-1.102 1.236-2.267.692-.678 1.341-1.419 1.467-1.631.21-.403.188-.403-.88-.043-1.781.636-2.033.551-1.152-.402.649-.678 1.425-1.907 1.425-2.267.0-.063-.314.042-.671.233-.377.212-1.215.53-1.844.72l-1.131.361-1.027-.7c-.566-.381-1.361-.805-1.781-.932C39.766 21.902 38.131 21.944 37.167 22.283zM33 64C16.432 64 3 50.569 3 34S16.432 4 33 4s30 13.431 30 30S49.568 64 33 64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:"/></svg></a><a href="https://www.linkedin.com/shareArticle?mini=true&url=https://flakm.github.io/posts/rustylcd/&title=Rustberry%20PI%20-%20LCD" class="linkedin no-underline" aria-label="share on LinkedIn"><svg height="32" style="enable-background:new 0 0 65 65" viewBox="0 0 65 65" width="32" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M50.837 48.137V36.425c0-6.275-3.35-9.195-7.816-9.195-3.604.0-5.219 1.983-6.119 3.374V27.71h-6.79c.09 1.917.0 20.427.0 20.427h6.79V36.729c0-.609.044-1.219.224-1.655.49-1.22 1.607-2.483 3.482-2.483 2.458.0 3.44 1.873 3.44 4.618v10.929H50.837zM22.959 24.922c2.367.0 3.842-1.57 3.842-3.531-.044-2.003-1.475-3.528-3.797-3.528s-3.841 1.524-3.841 3.528c0 1.961 1.474 3.531 3.753 3.531H22.959zM34 64C17.432 64 4 50.568 4 34 4 17.431 17.432 4 34 4s30 13.431 30 30C64 50.568 50.568 64 34 64zM26.354 48.137V27.71h-6.789v20.427H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:"/></svg></a></div><h1 class="f1 athelas mt3 mb1">Rustberry PI - LCD</h1><time class="f6 mv4 dib tracked" datetime=2020-07-01T14:20:17+02:00>July 1, 2020</time>
-<span class="f6 mv4 dib tracked">- 11 minutes read</span>
-<span class="f6 mv4 dib tracked">- 2285 words</span></header><div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><div class=danger><p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
-<a href=https://github.com/FlakM/rustberry>tutaj</a></p></div><p>Po zapaleniu <a href=https://flakm.github.io/posts/rustyled/>diody LED</a> zawsze przychodzi apetyt na więcej. W moim zestawie peryferiów do maliny kolejnym elementem był wyświetlacz LCD 2x16 znaków zgodnym z <a href=https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller>HD44780</a>.
-Pora na wyświetlenie rytualnego <code>Witaj świecie</code> na ekranie.</p><h2 id=przygotowanie-i-podłączenie>Przygotowanie i podłączenie</h2><p>Oprócz zakupów z <a href=https://flakm.github.io/posts/rustyled/>poprzedniego posta</a> potrzebujemy:</p><ol><li>wyświetlacza (koszt około 10zł)</li><li>dużo przewodów męsko-męskich</li><li>Listwa pinowa (16 pinów) + zestaw do lutowania</li><li>opcjonalnie potencjometr do sterowania kontrastem wyświetlacza.</li></ol><p>W pierwszej kolejności lutujemy listwę pinową do naszego ekranu. Jako, że lutowałem po raz pierwszy i nie jestem dumny z wyników zamiast pozywać zdjęcia odsyłąm do <a href="https://m.youtube.com/watch?v=uzxw1yl1s_M">filmiku</a>.</p><p>W kolejnym etapie podłączamy ekran do naszej maliny zgodnie z tabelą:</p><table class="table my-table table table-dark"><thead><tr><th align=left>PI</th><th align=right>LCD</th></tr></thead><tbody><tr><td align=left>GND</td><td align=right>VSS</td></tr><tr><td align=left>5V</td><td align=right>VDD</td></tr><tr><td align=left>GND (potencj)</td><td align=right>V0</td></tr><tr><td align=left>GPIO 22</td><td align=right>RS</td></tr><tr><td align=left>GND</td><td align=right>RW</td></tr><tr><td align=left>GPIO 5</td><td align=right>E</td></tr><tr><td align=left></td><td align=right>D0 - D3</td></tr><tr><td align=left>GPIO 26</td><td align=right>D4</td></tr><tr><td align=left>GPIO 19</td><td align=right>D5</td></tr><tr><td align=left>GPIO 13</td><td align=right>D6</td></tr><tr><td align=left>GPIO 6</td><td align=right>D7</td></tr><tr><td align=left>5V</td><td align=right>A</td></tr><tr><td align=left>GND</td><td align=right>K</td></tr></tbody></table><p>I schematem:</p><figure class=img-lg><img src=/images/rustypi/lcd/lcd_bb.svg></figure><p>Mój pełen układ wygląda następująco:</p><figure class=img-sm><img src=/images/rustypi/lcd/20200719_122243.jpg></figure><p>zgodnie z zasadą szybkiego testowania czy wszystko poprawnie podłączyliśmy możemy na malinie wykonać następujący skrypt:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pip install Adafruit_CharLCD
+<!doctype html><html lang=pl>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge,chrome=1">
+<title>Rustberry PI - LCD | FlakM blog</title>
+<meta name=viewport content="width=device-width,minimum-scale=1">
+<meta name=description content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem.">
+<meta name=generator content="Hugo 0.91.2">
+<meta name=robots content="index, follow">
+<link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css>
+<link rel=stylesheet href=/css/main.css>
+<meta property="og:title" content="Rustberry PI - LCD">
+<meta property="og:description" content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://flakm.github.io/posts/rustylcd/"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/20200719_122243.jpg"><meta property="og:image" content="https://flakm.github.io/images/rustypi/lcd/lcd_bb.svg"><meta property="article:section" content="posts">
+<meta property="article:published_time" content="2020-07-01T14:20:17+02:00">
+<meta property="article:modified_time" content="2020-07-01T14:20:17+02:00">
+<meta property="og:see_also" content="https://flakm.github.io/posts/rustydht11/"><meta property="og:see_also" content="https://flakm.github.io/posts/rustyled/">
+<meta itemprop=name content="Rustberry PI - LCD">
+<meta itemprop=description content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem."><meta itemprop=datePublished content="2020-07-01T14:20:17+02:00">
+<meta itemprop=dateModified content="2020-07-01T14:20:17+02:00">
+<meta itemprop=wordCount content="2285"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/20200719_122243.jpg"><meta itemprop=image content="https://flakm.github.io/images/rustypi/lcd/lcd_bb.svg">
+<meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg">
+<meta name=twitter:title content="Rustberry PI - LCD">
+<meta name=twitter:description content="Uczę się podłączać i z sukcesem wyświetlić napis na wyświetlaczu LCD 2x16 znaków opartym na kontrolerze HD44780 z rustem.">
+<script type=application/javascript>var doNotTrack=!1;doNotTrack||(window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga('create','UA-172669006-1','auto'),ga('send','pageview'))</script>
+<script async src=https://www.google-analytics.com/analytics.js></script>
+</head>
+<body class="ma0 avenir bg-near-white production">
+<header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/rustypi/lcd/20200718_204650.jpg)>
+<div class=bg-black-60>
+<nav class="pv3 ph3 ph4-ns" role=navigation>
+<div class="flex-l justify-between items-center center">
+<a href=/ class="f3 fw2 hover-white no-underline white-90 dib">
+FlakM blog
+</a>
+<div class="flex-l items-center">
+<ul class="pl0 mr3">
+<li class="list f5 f4-ns fw4 dib pr3">
+<a class="hover-white no-underline white-90" href=/ title="Home page">
+Home
+</a>
+</li>
+<li class="list f5 f4-ns fw4 dib pr3">
+<a class="hover-white no-underline white-90" href=/about/ title="About me page">
+About me
+</a>
+</li>
+</ul>
+<div class=ananke-socials>
+<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
+<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
+</span>
+<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
+</span></a>
+</div>
+</div>
+</div>
+</nav>
+<div class="tc-l pv6 ph3 ph4-ns">
+<h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - LCD</h1>
+</div>
+</div>
+</header>
+<main class=pb7 role=main>
+<article class="flex-l flex-wrap justify-between mw8 center ph3">
+<header class="mt4 w-100">
+<aside class="instapaper_ignoref b helvetica tracked">
+POSTS
+</aside>
+<div id=sharing class="mt3 ananke-socials">
+</div>
+<h1 class="f1 athelas mt3 mb1">Rustberry PI - LCD</h1>
+<p class=tracked>
+By <strong>flakm</strong>
+</p>
+<time class="f6 mv4 dib tracked" datetime=2020-07-01T14:20:17+02:00>July 1, 2020</time>
+<span class="f6 mv4 dib tracked"> - 11 minutes read </span>
+<span class="f6 mv4 dib tracked"> - 2285 words </span>
+</header>
+<div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><div class=danger>
+<p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
+<a href=https://github.com/FlakM/rustberry>tutaj</a>
+</p>
+</div>
+<p>Po zapaleniu <a href=https://flakm.github.io/posts/rustyled/>diody LED</a> zawsze przychodzi apetyt na więcej. W moim zestawie peryferiów do maliny kolejnym elementem był wyświetlacz LCD 2x16 znaków zgodnym z <a href=https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller>HD44780</a>.
+Pora na wyświetlenie rytualnego <code>Witaj świecie</code> na ekranie.</p>
+<h2 id=przygotowanie-i-podłączenie>Przygotowanie i podłączenie</h2>
+<p>Oprócz zakupów z <a href=https://flakm.github.io/posts/rustyled/>poprzedniego posta</a> potrzebujemy:</p>
+<ol>
+<li>wyświetlacza (koszt około 10zł)</li>
+<li>dużo przewodów męsko-męskich</li>
+<li>Listwa pinowa (16 pinów) + zestaw do lutowania</li>
+<li>opcjonalnie potencjometr do sterowania kontrastem wyświetlacza.</li>
+</ol>
+<p>W pierwszej kolejności lutujemy listwę pinową do naszego ekranu. Jako, że lutowałem po raz pierwszy i nie jestem dumny z wyników zamiast pozywać zdjęcia odsyłąm do <a href="https://m.youtube.com/watch?v=uzxw1yl1s_M">filmiku</a>.</p>
+<p>W kolejnym etapie podłączamy ekran do naszej maliny zgodnie z tabelą:</p>
+<table class="table my-table table table-dark">
+<thead>
+<tr>
+<th style=text-align:left>PI</th>
+<th style=text-align:right>LCD</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style=text-align:left>GND</td>
+<td style=text-align:right>VSS</td>
+</tr>
+<tr>
+<td style=text-align:left>5V</td>
+<td style=text-align:right>VDD</td>
+</tr>
+<tr>
+<td style=text-align:left>GND (potencj)</td>
+<td style=text-align:right>V0</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 22</td>
+<td style=text-align:right>RS</td>
+</tr>
+<tr>
+<td style=text-align:left>GND</td>
+<td style=text-align:right>RW</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 5</td>
+<td style=text-align:right>E</td>
+</tr>
+<tr>
+<td style=text-align:left></td>
+<td style=text-align:right>D0 - D3</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 26</td>
+<td style=text-align:right>D4</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 19</td>
+<td style=text-align:right>D5</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 13</td>
+<td style=text-align:right>D6</td>
+</tr>
+<tr>
+<td style=text-align:left>GPIO 6</td>
+<td style=text-align:right>D7</td>
+</tr>
+<tr>
+<td style=text-align:left>5V</td>
+<td style=text-align:right>A</td>
+</tr>
+<tr>
+<td style=text-align:left>GND</td>
+<td style=text-align:right>K</td>
+</tr>
+</tbody>
+</table>
+<p>I schematem:</p>
+<figure class=img-lg><img src=/images/rustypi/lcd/lcd_bb.svg>
+</figure>
+<p>Mój pełen układ wygląda następująco:</p>
+<figure class=img-sm><img src=/images/rustypi/lcd/20200719_122243.jpg>
+</figure>
+<p>zgodnie z zasadą szybkiego testowania czy wszystko poprawnie podłączyliśmy możemy na malinie wykonać następujący skrypt:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>pip install Adafruit_CharLCD
 cat <span style=color:#e6db74>&lt;&lt;EOF &gt; lcd.py
 </span><span style=color:#e6db74>from time import sleep
 </span><span style=color:#e6db74>from Adafruit_CharLCD import Adafruit_CharLCD
@@ -17,8 +180,17 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; lcd.py
 </span><span style=color:#e6db74>
 </span><span style=color:#e6db74>EOF</span>
 python lcd.py
-</code></pre></div><h2 id=dobra-dobra-ale-co-właściwie-sięstało>Dobra, dobra ale co właściwie się stało?</h2><p>Zgodnie z dokumentacją kontrolera pierwszym krokiem który trzeba wykonać jest inicjalizacja, czyli ustawienie sposobu działania i wybranie trybu działania kontrolera. Dostępne stany to:</p><ol><li>8 bitowy</li><li>4 bitowy - oczekiwanie na pierwsze 4 bity</li><li>4 bitowy - oczekiwanie na drugie 4 bity</li></ol><p>W pierwszym trybie wykorzystujemy 8 pinów GPIO do przesyłu danych i każdy z pinów podłączony jest do jednego wyjścia wyświetlacza, w drugim trybie wykorzystujemy jedynie 4 i w pierwszej kolejności wysyłamy 4 bardziej znaczące bity, pulsujemy stanem wyjścia <code>Enable</code> (tu przechodzimy do stanu 3) i wysyłąmy kolejne, mniej znaczące 4 bity i pulsujemy stanem wyjścia <code>Enable</code>. Pulsowanie oznacza zmianę Ze stanu wysokiego do niskiego.</p><p>W jaki sposób można zamodelować drobną bibliotekę, która będzie wykonywała to zadanie?
-W pierwszej kolejności należy utworzyć nowy projekt:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># tworzymy nowy projekt w katalogu lcd</span>
+</code></pre></div><h2 id=dobra-dobra-ale-co-właściwie-sięstało>Dobra, dobra ale co właściwie się stało?</h2>
+<p>Zgodnie z dokumentacją kontrolera pierwszym krokiem który trzeba wykonać jest inicjalizacja, czyli ustawienie sposobu działania i wybranie trybu działania kontrolera. Dostępne stany to:</p>
+<ol>
+<li>8 bitowy</li>
+<li>4 bitowy - oczekiwanie na pierwsze 4 bity</li>
+<li>4 bitowy - oczekiwanie na drugie 4 bity</li>
+</ol>
+<p>W pierwszym trybie wykorzystujemy 8 pinów GPIO do przesyłu danych i każdy z pinów podłączony jest do jednego wyjścia wyświetlacza, w drugim trybie wykorzystujemy jedynie 4 i w pierwszej kolejności wysyłamy 4 bardziej znaczące bity, pulsujemy stanem wyjścia <code>Enable</code> (tu przechodzimy do stanu 3) i wysyłąmy kolejne, mniej znaczące 4 bity i pulsujemy stanem wyjścia <code>Enable</code>. Pulsowanie oznacza zmianę Ze stanu wysokiego do niskiego.</p>
+<p>W jaki sposób można zamodelować drobną bibliotekę, która będzie wykonywała to zadanie?
+W pierwszej kolejności należy utworzyć nowy projekt:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># tworzymy nowy projekt w katalogu lcd</span>
 cargo new lcd --bin
 cd lcd
 
@@ -30,9 +202,11 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
 </span><span style=color:#e6db74>[target.armv7-unknown-linux-gnueabihf]
 </span><span style=color:#e6db74>linker = &#34;arm-linux-gnueabihf-gcc&#34;
 </span><span style=color:#e6db74>EOF</span>
-</code></pre></div><p>Oraz modyfikujemy cargo.toml poprzez dodanie dwóch zależności:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>rppal</span> = <span style=color:#e6db74>&#34;0.11.3&#34;</span>
+</code></pre></div><p>Oraz modyfikujemy cargo.toml poprzez dodanie dwóch zależności:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>rppal</span> = <span style=color:#e6db74>&#34;0.11.3&#34;</span>
 <span style=color:#a6e22e>anyhow</span> = <span style=color:#e6db74>&#34;1.0&#34;</span>
-</code></pre></div><p>Aby utrzymać minimalny porządek w kodzie możemy utworzyć dodatkowy plik <code>src/lib.rs</code>, w którym umieszczamy kod naszej biblioteki do komunikacji z ekranem:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> anyhow::Result;
+</code></pre></div><p>Aby utrzymać minimalny porządek w kodzie możemy utworzyć dodatkowy plik <code>src/lib.rs</code>, w którym umieszczamy kod naszej biblioteki do komunikacji z ekranem:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> anyhow::Result;
 <span style=color:#66d9ef>use</span> rppal::gpio::Gpio;
 <span style=color:#66d9ef>use</span> rppal::gpio::OutputPin;
 <span style=color:#66d9ef>use</span> std::{thread, time};
@@ -95,13 +269,13 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
         self.clear()<span style=color:#f92672>?</span>;
         <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> line <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
 
-        <span style=color:#66d9ef>for</span> char <span style=color:#66d9ef>in</span> text.chars() {
-            <span style=color:#66d9ef>if</span> char <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> {
+        <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>char</span> <span style=color:#66d9ef>in</span> text.chars() {
+            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>char</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> {
                 line <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>;
                 self.set_cursor(<span style=color:#ae81ff>0</span>, line)<span style=color:#f92672>?</span>
             } <span style=color:#66d9ef>else</span> {
                 <span style=color:#75715e>// todo perform some check of casting
-</span><span style=color:#75715e></span>                self.write(char <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
+</span><span style=color:#75715e></span>                self.write(<span style=color:#66d9ef>char</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
             }
         }
         Ok(())
@@ -171,7 +345,8 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
         Ok(())
     }
 }
-</code></pre></div><p>Pierwszym krokiem jest utworzenie struct <code>Lcd</code>:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Lcd</span> {
+</code></pre></div><p>Pierwszym krokiem jest utworzenie struct <code>Lcd</code>:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Lcd</span> {
     <span style=color:#e6db74>/// cztery piny do przesyłu danych (bit 4-7)
 </span><span style=color:#e6db74></span>    <span style=color:#66d9ef>pub</span> data: [OutputPin; <span style=color:#ae81ff>4</span>],
 
@@ -181,7 +356,8 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
     <span style=color:#e6db74>/// pin enable
 </span><span style=color:#e6db74></span>    <span style=color:#66d9ef>pub</span> en: <span style=color:#a6e22e>OutputPin</span>,
 }
-</code></pre></div><p>Zawiera referencje do wszystkich pinów, które są nam potrzebne do wykonywania operacji w trybie 4-bitowym. Aby dodać metody należy zdeklarować je w bloku <code>impl</code> jak w przypadku metody konstruującej <code>new</code>:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>impl</span> Lcd {
+</code></pre></div><p>Zawiera referencje do wszystkich pinów, które są nam potrzebne do wykonywania operacji w trybie 4-bitowym. Aby dodać metody należy zdeklarować je w bloku <code>impl</code> jak w przypadku metody konstruującej <code>new</code>:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>impl</span> Lcd {
     <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>new</span>() -&gt; Result<span style=color:#f92672>&lt;</span>Lcd<span style=color:#f92672>&gt;</span> {
         <span style=color:#66d9ef>let</span> rs <span style=color:#f92672>=</span> Gpio::new()<span style=color:#f92672>?</span>.get(<span style=color:#ae81ff>22</span>)<span style=color:#f92672>?</span>.into_output();
 
@@ -199,9 +375,12 @@ cat <span style=color:#e6db74>&lt;&lt;EOF &gt; .cargo/config
         })
     }
     <span style=color:#e6db74>/// rest skipped for now
-</span></code></pre></div><p>Wykorzystujemy bibliotekę <code>rppal</code> i konstruujemy zestaw pinów wyjściowych:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>let</span> rs <span style=color:#f92672>=</span> Gpio::new()<span style=color:#f92672>?</span>.get(<span style=color:#ae81ff>22</span>)<span style=color:#f92672>?</span>.into_output();
+</span></code></pre></div><p>Wykorzystujemy bibliotekę <code>rppal</code> i konstruujemy zestaw pinów wyjściowych:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>let</span> rs <span style=color:#f92672>=</span> Gpio::new()<span style=color:#f92672>?</span>.get(<span style=color:#ae81ff>22</span>)<span style=color:#f92672>?</span>.into_output();
 </code></pre></div><p>W kodzie pojawia się znak <code>?</code>, jest to operator, który pomaga przy obsłudze błędów.
-Użycie <code>?</code> oznacza, że nasz kod ma w tym miejscu zwrócić sterowanie wyżej, przekazując błąd jeżeli zaistniał lub odpakować poprawny wynik. Kompilator nie pozwoli nam popełnić błędu i zmusza nas do obsłużenia wszystkich możliwości.</p><p>Mamy już gotową instancję <code>Lcd</code> zawierającą wszystkie piny potrzebne do komunikacji. Teraz należy zainicjować nasz wyświetlacz:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
+Użycie <code>?</code> oznacza, że nasz kod ma w tym miejscu zwrócić sterowanie wyżej, przekazując błąd jeżeli zaistniał lub odpakować poprawny wynik. Kompilator nie pozwoli nam popełnić błędu i zmusza nas do obsłużenia wszystkich możliwości.</p>
+<p>Mamy już gotową instancję <code>Lcd</code> zawierającą wszystkie piny potrzebne do komunikacji. Teraz należy zainicjować nasz wyświetlacz:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
         <span style=color:#75715e>// checkout Mode selection in  https://en.wikipedia.org/wiki/Hitachi_HD44780_LCD_controller
 </span><span style=color:#75715e></span>        <span style=color:#75715e>// this will set controller to 4-bit mode no matter the entering state
 </span><span style=color:#75715e></span>        self.write(<span style=color:#ae81ff>0x33</span>, <span style=color:#66d9ef>false</span>)<span style=color:#f92672>?</span>;
@@ -220,7 +399,11 @@ Użycie <code>?</code> oznacza, że nasz kod ma w tym miejscu zwrócić sterowa
         self.clear()<span style=color:#f92672>?</span>;
         Ok(())
     }
-</code></pre></div><p>W powyższym fragmencie metoda <code>init</code> przyjmuje jeden parametr <code>&mut self</code>. Oznacza to, ze przyjmuje mutowalną referencję do samego siebie. Mutowalna referencja oznacza, że mamy możliwość modyfikowania wartości bez przejmowania własności.</p><p>Pierwsze dwie wartości <code>0x33</code> i <code>0x32</code> zagwarantują, że dalsza część programu będzie działała w trybie 4 bitowym bez znaczenia jaki stan początkowy zastał program. W dalszej części metody ustawiane są pozostałe wymagane parametry pracy kontrolera.</p><p>Wywołanie <code>self.clear()</code> czyści bufory kontrolera. W przypadku wcześniejszego stanu spowoduje, to że po wykonaniu metody <code>init</code> ekran będzie czysty.</p><p>Kluczowym fragmentem naszego programu jest metoda <code>write</code>:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>write</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self, value: <span style=color:#66d9ef>u8</span>, char_mode: <span style=color:#66d9ef>bool</span>) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
+</code></pre></div><p>W powyższym fragmencie metoda <code>init</code> przyjmuje jeden parametr <code>&mut self</code>. Oznacza to, ze przyjmuje mutowalną referencję do samego siebie. Mutowalna referencja oznacza, że mamy możliwość modyfikowania wartości bez przejmowania własności.</p>
+<p>Pierwsze dwie wartości <code>0x33</code> i <code>0x32</code> zagwarantują, że dalsza część programu będzie działała w trybie 4 bitowym bez znaczenia jaki stan początkowy zastał program. W dalszej części metody ustawiane są pozostałe wymagane parametry pracy kontrolera.</p>
+<p>Wywołanie <code>self.clear()</code> czyści bufory kontrolera. W przypadku wcześniejszego stanu spowoduje, to że po wykonaniu metody <code>init</code> ekran będzie czysty.</p>
+<p>Kluczowym fragmentem naszego programu jest metoda <code>write</code>:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>write</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self, value: <span style=color:#66d9ef>u8</span>, char_mode: <span style=color:#66d9ef>bool</span>) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
         <span style=color:#66d9ef>let</span> write_pin <span style=color:#f92672>=</span> <span style=color:#f92672>|</span>pin: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> OutputPin, enabled: <span style=color:#66d9ef>bool</span><span style=color:#f92672>|</span> {
             <span style=color:#66d9ef>if</span> enabled {
                 pin.set_high()
@@ -248,7 +431,24 @@ Użycie <code>?</code> oznacza, że nasz kod ma w tym miejscu zwrócić sterowa
 
         Ok(())
     }
-</code></pre></div><p>W trybie 4 bitowym używane są piny kontrolne i 4 równoległe linie danych.</p><ol><li><p>Wybór rejestru (<strong>register select RS</strong>) pozwala sterować do którego rejestru mają być zapisywane sygnały. Kontroler posiada dwa rejestry - danych (stan wysoki) i poleceń - (stan niski)</p></li><li><p>Zapis/odczyt (<strong>read/write RW</strong>) dla zapisu powinien być ustawiony na stan niski. Dlatego w naszym układzie podłączony jest do pinu GND</p></li><li><p>Włącz (<strong>Enable EN</strong>) steruje wzbudzeniem działania kontrolera. Zmiana ze stanu wysoki na niski jest wymagana aby wywołać zadeklarowane działanie</p></li><li><p>Piny danych (<strong>D4-D7</strong>) pozwalające na przesyłanie znaków do wyświetlenia lub komend</p></li></ol><p>W takim razie w jaki sposób zostało zaimplementowane &ldquo;pulsowanie&rdquo;?</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>pulse_enable</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) {
+</code></pre></div>
+<p>W trybie 4 bitowym używane są piny kontrolne i 4 równoległe linie danych.</p>
+<ol>
+<li>
+<p>Wybór rejestru (<strong>register select RS</strong>) pozwala sterować do którego rejestru mają być zapisywane sygnały. Kontroler posiada dwa rejestry - danych (stan wysoki) i poleceń - (stan niski)</p>
+</li>
+<li>
+<p>Zapis/odczyt (<strong>read/write RW</strong>) dla zapisu powinien być ustawiony na stan niski. Dlatego w naszym układzie podłączony jest do pinu GND</p>
+</li>
+<li>
+<p>Włącz (<strong>Enable EN</strong>) steruje wzbudzeniem działania kontrolera. Zmiana ze stanu wysoki na niski jest wymagana aby wywołać zadeklarowane działanie</p>
+</li>
+<li>
+<p>Piny danych (<strong>D4-D7</strong>) pozwalające na przesyłanie znaków do wyświetlenia lub komend</p>
+</li>
+</ol>
+<p>W takim razie w jaki sposób zostało zaimplementowane &ldquo;pulsowanie&rdquo;?</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>pulse_enable</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) {
         <span style=color:#66d9ef>let</span> write_pin <span style=color:#f92672>=</span> <span style=color:#f92672>|</span>pin: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> OutputPin, enabled: <span style=color:#66d9ef>bool</span><span style=color:#f92672>|</span> {
             <span style=color:#66d9ef>if</span> enabled {
                 pin.set_high()
@@ -274,17 +474,19 @@ Użycie <code>?</code> oznacza, że nasz kod ma w tym miejscu zwrócić sterowa
     }
 </code></pre></div><p>Deklarujemy lokalnego closurka <code>write_pin</code>, który zmienia stan pojedynczego pina.
 Następnie defensywnie zmieniamy stan pina <code>EN</code> z na niski -> wysoki -> niski, żeby mieć pewność, że bez warunku jaki był wcześniejszy stan doszło do &ldquo;zapulsowania&rdquo;.
-Oczekiwanie wykonywane przez <code>thread::sleep</code> jest wymagane przez kontroler zgodnie z wymaganiami w dokumentacji.</p><p>Wygląda na to, że wszystkie komponenty oprócz pisania tekstu do samego kontrolera są już zaimplementowane, Zatem na czym polega pisanie tekstu?</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>message</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self, text: String) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
+Oczekiwanie wykonywane przez <code>thread::sleep</code> jest wymagane przez kontroler zgodnie z wymaganiami w dokumentacji.</p>
+<p>Wygląda na to, że wszystkie komponenty oprócz pisania tekstu do samego kontrolera są już zaimplementowane, Zatem na czym polega pisanie tekstu?</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>message</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self, text: String) -&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
         self.clear()<span style=color:#f92672>?</span>;
         <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> line <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
 
-        <span style=color:#66d9ef>for</span> char <span style=color:#66d9ef>in</span> text.chars() {
-            <span style=color:#66d9ef>if</span> char <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> {
+        <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>char</span> <span style=color:#66d9ef>in</span> text.chars() {
+            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>char</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> {
                 line <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>;
                 self.set_cursor(<span style=color:#ae81ff>0</span>, line)<span style=color:#f92672>?</span>
             } <span style=color:#66d9ef>else</span> {
                 <span style=color:#75715e>// todo perform some check of casting
-</span><span style=color:#75715e></span>                self.write(char <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
+</span><span style=color:#75715e></span>                self.write(<span style=color:#66d9ef>char</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
             }
         }
         Ok(())
@@ -300,14 +502,22 @@ Oczekiwanie wykonywane przez <code>thread::sleep</code> jest wymagane przez kont
         Ok(())
     }
 </code></pre></div><p>Ponownie defensywnie czyścimy na początku bufory controllera. a następnie iterujemy po wszystkich literach ciągu. Jeżeli natrafimy na znak nowej lini <code>\n</code> zmieniamy kursor na odpowiednią linię w przeciwnym przypadku zapisujemy odpowiednie znaki.
-W powyższym kodzie znajduje się dużo możliwości poprawy:</p><ol><li>co jeżeli wejście ma w linijce więcej niż 16 znaków?</li><li>co jeżeli lini jest więcej niż wyświetlacz posiada?</li><li>co jeżeli znak jest spoza zakresu 0-255 (typ na który castujemy to u8 czyli 8 bitów)?</li></ol><p>W przypadku 1 zachowanie ekranu jest niezdefiniowane. W 2 przypadku instrukcja warunkowa spowoduje, że 3 i kolejne linie będą nadpisywały drugą linię.
-W 3 przypadku problem może być większy bo zgodnie z zasadami języka dojedzie do błędnego wyniku:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#75715e>#[test]</span>
+W powyższym kodzie znajduje się dużo możliwości poprawy:</p>
+<ol>
+<li>co jeżeli wejście ma w linijce więcej niż 16 znaków?</li>
+<li>co jeżeli lini jest więcej niż wyświetlacz posiada?</li>
+<li>co jeżeli znak jest spoza zakresu 0-255 (typ na który castujemy to u8 czyli 8 bitów)?</li>
+</ol>
+<p>W przypadku 1 zachowanie ekranu jest niezdefiniowane. W 2 przypadku instrukcja warunkowa spowoduje, że 3 i kolejne linie będą nadpisywały drugą linię.
+W 3 przypadku problem może być większy bo zgodnie z zasadami języka dojedzie do błędnego wyniku:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#75715e>#[test]</span>
     <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>cast</span>() {
         <span style=color:#66d9ef>let</span> hmm <span style=color:#f92672>=</span> <span style=color:#ae81ff>256</span>;
-        assert_eq<span style=color:#f92672>!</span>(hmm, <span style=color:#ae81ff>0</span>)
+        assert_eq!(hmm, <span style=color:#ae81ff>0</span>)
     }
 </code></pre></div><p>Aby ograniczyć te problemy możemy dodać walidację wejścia przekazywanego przez użytkownika.
-Zmieniony kod wygląda następująco:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>process_msg</span>(text: <span style=color:#66d9ef>&amp;</span><span style=color:#66d9ef>str</span>) -&gt; Result<span style=color:#f92672>&lt;</span>Vec<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>&gt;&gt;</span> {
+Zmieniony kod wygląda następująco:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>process_msg</span>(text: <span style=color:#66d9ef>&amp;</span><span style=color:#66d9ef>str</span>) -&gt; Result<span style=color:#f92672>&lt;</span>Vec<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>&gt;&gt;</span> {
         <span style=color:#66d9ef>if</span> text.lines().count() <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span> {
             <span style=color:#66d9ef>return</span> Err(anyhow<span style=color:#f92672>!</span>(
                 <span style=color:#e6db74>&#34;Invalid line count. We have only 2 lines on screen&#34;</span>
@@ -317,15 +527,15 @@ Zmieniony kod wygląda następująco:</p><div class=highlight><pre style=color:#
         <span style=color:#66d9ef>for</span> (i, line) <span style=color:#66d9ef>in</span> text.lines().map(<span style=color:#f92672>|</span>l<span style=color:#f92672>|</span> l.replace(<span style=color:#e6db74>&#34;\n&#34;</span>, <span style=color:#e6db74>&#34;&#34;</span>)).enumerate() {
             <span style=color:#66d9ef>if</span> line.chars().count() <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>16</span> {
                 <span style=color:#66d9ef>return</span> Err(anyhow<span style=color:#f92672>!</span>(
-                    format<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Line number {} has more then 16 allowed characters&#34;</span>, i)
+                    format!(<span style=color:#e6db74>&#34;Line number {} has more then 16 allowed characters&#34;</span>, i)
                 ));
             }
         }
 
-        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> result <span style=color:#f92672>=</span> vec<span style=color:#f92672>!</span>[];
+        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> result <span style=color:#f92672>=</span> vec![];
 
-        <span style=color:#66d9ef>for</span> char <span style=color:#66d9ef>in</span> text.chars() {
-            result.push(<span style=color:#66d9ef>u8</span>::try_from(char <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u32</span>)<span style=color:#f92672>?</span>);
+        <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>char</span> <span style=color:#66d9ef>in</span> text.chars() {
+            result.push(<span style=color:#66d9ef>u8</span>::try_from(<span style=color:#66d9ef>char</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u32</span>)<span style=color:#f92672>?</span>);
         }
 
         Ok(result)
@@ -338,51 +548,57 @@ Zmieniony kod wygląda następująco:</p><div class=highlight><pre style=color:#
         <span style=color:#75715e>// let characters = text.chars();
 </span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> characters <span style=color:#f92672>=</span> Lcd::process_msg(<span style=color:#f92672>&amp;</span>text)<span style=color:#f92672>?</span>;
 
-        <span style=color:#66d9ef>for</span> char <span style=color:#66d9ef>in</span> characters {
-            <span style=color:#66d9ef>if</span> char <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span> {
+        <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>char</span> <span style=color:#66d9ef>in</span> characters {
+            <span style=color:#66d9ef>if</span> <span style=color:#66d9ef>char</span> <span style=color:#f92672>==</span> <span style=color:#e6db74>&#39;\n&#39;</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span> {
                 line <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>;
                 self.set_cursor(<span style=color:#ae81ff>0</span>, line)<span style=color:#f92672>?</span>
             } <span style=color:#66d9ef>else</span> {
                 <span style=color:#75715e>// todo perform some check of casting
-</span><span style=color:#75715e></span>                self.write(char <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
+</span><span style=color:#75715e></span>                self.write(<span style=color:#66d9ef>char</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u8</span>, <span style=color:#66d9ef>true</span>)<span style=color:#f92672>?</span>
             }
         }
         Ok(())
     }
-</code></pre></div><p>W nowej prywatnej funkcji <code>process_msg</code> przetwarzamy otrzymany ciąg znaków i zwracamy wektor znaków gotowych do zapisu o typie <code>Vec&lt;u8></code>. Jak to osiągneliśmy? W pierwszej kolejności sprawdzamy czy liczba lini jest taka jak się spodziewamy:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>if</span> text.lines().count() <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span> {
+</code></pre></div><p>W nowej prywatnej funkcji <code>process_msg</code> przetwarzamy otrzymany ciąg znaków i zwracamy wektor znaków gotowych do zapisu o typie <code>Vec&lt;u8></code>. Jak to osiągneliśmy? W pierwszej kolejności sprawdzamy czy liczba lini jest taka jak się spodziewamy:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>if</span> text.lines().count() <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>2</span> {
     <span style=color:#66d9ef>return</span> Err(anyhow<span style=color:#f92672>!</span>(
         <span style=color:#e6db74>&#34;Invalid line count. We have only 2 lines on screen&#34;</span>
     ));
 }
 </code></pre></div><p>Jeżeli jest większa niż spodziewane 2 to zwracamy błąd używając wariantu enuma <code>Result</code> sugerującego błąd: <code>Err</code>.
-Używamy też rewelacyjnej biblioteki <code>anyhow</code> aby nie tworzyć zbędnych typów błędów. W większej bibliotece możliwe, że miałoby to większe znaczenie i można by użyć alternatywnej <code>thiserror</code>.</p><p>W kolejnym kroku iterujemy po każdej linijce i sprawdzamy, czy każda linijka posiada maksymalnie 16 znaków:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust> <span style=color:#66d9ef>for</span> (i, line) <span style=color:#66d9ef>in</span> text.lines().map(<span style=color:#f92672>|</span>l<span style=color:#f92672>|</span> l.replace(<span style=color:#e6db74>&#34;\n&#34;</span>, <span style=color:#e6db74>&#34;&#34;</span>)).enumerate() {
+Używamy też rewelacyjnej biblioteki <code>anyhow</code> aby nie tworzyć zbędnych typów błędów. W większej bibliotece możliwe, że miałoby to większe znaczenie i można by użyć alternatywnej <code>thiserror</code>.</p>
+<p>W kolejnym kroku iterujemy po każdej linijce i sprawdzamy, czy każda linijka posiada maksymalnie 16 znaków:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust> <span style=color:#66d9ef>for</span> (i, line) <span style=color:#66d9ef>in</span> text.lines().map(<span style=color:#f92672>|</span>l<span style=color:#f92672>|</span> l.replace(<span style=color:#e6db74>&#34;\n&#34;</span>, <span style=color:#e6db74>&#34;&#34;</span>)).enumerate() {
             <span style=color:#66d9ef>if</span> line.chars().count() <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>16</span> {
                 <span style=color:#66d9ef>return</span> Err(anyhow<span style=color:#f92672>!</span>(
-                    format<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Line number {} has more then 16 allowed characters&#34;</span>, i)
+                    format!(<span style=color:#e6db74>&#34;Line number {} has more then 16 allowed characters&#34;</span>, i)
                 ));
             }
         }
-</code></pre></div><p>Ostatecznie przepisujemy znaki do wektora gotowego do zapisu na naszym ekranie walidując przy okazji czy wskazane znaki znajdują się w odpowiednim zakresie 0-255.</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> result <span style=color:#f92672>=</span> vec<span style=color:#f92672>!</span>[];
+</code></pre></div><p>Ostatecznie przepisujemy znaki do wektora gotowego do zapisu na naszym ekranie walidując przy okazji czy wskazane znaki znajdują się w odpowiednim zakresie 0-255.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> result <span style=color:#f92672>=</span> vec![];
 
-        <span style=color:#66d9ef>for</span> char <span style=color:#66d9ef>in</span> text.chars() {
-            result.push(<span style=color:#66d9ef>u8</span>::try_from(char <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u32</span>)<span style=color:#f92672>?</span>);
+        <span style=color:#66d9ef>for</span> <span style=color:#66d9ef>char</span> <span style=color:#66d9ef>in</span> text.chars() {
+            result.push(<span style=color:#66d9ef>u8</span>::try_from(<span style=color:#66d9ef>char</span> <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u32</span>)<span style=color:#f92672>?</span>);
         }
 
         Ok(result)
-</code></pre></div><p>Aby mieć pewność, że nasze zmiany faktycznie działają możemy napisać kilka testów:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#75715e>#[cfg(test)]</span>
+</code></pre></div><p>Aby mieć pewność, że nasze zmiany faktycznie działają możemy napisać kilka testów:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#75715e>#[cfg(test)]</span>
 <span style=color:#66d9ef>mod</span> tests {
 
     <span style=color:#66d9ef>use</span> <span style=color:#66d9ef>super</span>::<span style=color:#f92672>*</span>;
     <span style=color:#75715e>#[test]</span>
     <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>check_our_validation</span>(){
-        assert<span style=color:#f92672>!</span>( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world&#34;</span>).is_ok());
-        assert<span style=color:#f92672>!</span>( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world\n&#34;</span>).is_ok());
-        assert<span style=color:#f92672>!</span>( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world\n third line\n&#34;</span>).is_err() );
-        assert<span style=color:#f92672>!</span>( Lcd::process_msg(<span style=color:#e6db74>&#34;hello this is a long sentence\n world&#34;</span>).is_err() );
-        assert<span style=color:#f92672>!</span>( Lcd::process_msg(<span style=color:#e6db74>&#34;ą&#34;</span>).is_err());
+        assert!( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world&#34;</span>).is_ok());
+        assert!( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world\n&#34;</span>).is_ok());
+        assert!( Lcd::process_msg(<span style=color:#e6db74>&#34;hello \n world\n third line\n&#34;</span>).is_err() );
+        assert!( Lcd::process_msg(<span style=color:#e6db74>&#34;hello this is a long sentence\n world&#34;</span>).is_err() );
+        assert!( Lcd::process_msg(<span style=color:#e6db74>&#34;ą&#34;</span>).is_err());
     }
 }
-</code></pre></div><p>Po uruchomieniu testu używając polecenia <code>cargo test --lib</code> widzimy, że wszystko jest ok:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ cargo test --lib
+</code></pre></div><p>Po uruchomieniu testu używając polecenia <code>cargo test --lib</code> widzimy, że wszystko jest ok:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ cargo test --lib
     Finished test <span style=color:#f92672>[</span>unoptimized + debuginfo<span style=color:#f92672>]</span> target<span style=color:#f92672>(</span>s<span style=color:#f92672>)</span> in 0.00s
      Running target/debug/deps/lcd-b10bed0c8c7b28a9
 
@@ -391,7 +607,8 @@ test tests::check_our_validation ... ok
 
 test result: ok. <span style=color:#ae81ff>1</span> passed; <span style=color:#ae81ff>0</span> failed; <span style=color:#ae81ff>0</span> ignored; <span style=color:#ae81ff>0</span> measured; <span style=color:#ae81ff>0</span> filtered out
 
-</code></pre></div><p>Pozostaje szybki test wykonania na malinie. W pliku <code>src/main.rs</code> zapisujemy:</p><div class=highlight><pre style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> anyhow::Result;
+</code></pre></div><p>Pozostaje szybki test wykonania na malinie. W pliku <code>src/main.rs</code> zapisujemy:</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> anyhow::Result;
 
 <span style=color:#66d9ef>use</span> lcd::Lcd;
 <span style=color:#66d9ef>use</span> std::{thread, time};
@@ -411,8 +628,55 @@ test result: ok. <span style=color:#ae81ff>1</span> passed; <span style=color:#a
 
     Ok(())
 }
-</code></pre></div><p>Całość możemy skompilować używając polecenia <code>cargo build --target armv7-unknown-linux-gnueabihf</code> i przesłać na malinę używając scp.</p><h2 id=podsumowanie>Podsumowanie</h2><p>Jesteśmy w stanie bez problemu sterować tekstem na naszym wyświetlaczu.
+</code></pre></div><p>Całość możemy skompilować używając polecenia <code>cargo build --target armv7-unknown-linux-gnueabihf</code> i przesłać na malinę używając scp.</p>
+<h2 id=podsumowanie>Podsumowanie</h2>
+<p>Jesteśmy w stanie bez problemu sterować tekstem na naszym wyświetlaczu.
 Dodatkowo mamy bibliotekę, która wykonuje podstawową walidację wejścia.
 Podobnie jak w scali istnieją typy (w scali zamiast <code>Result</code> jest to <code>Try</code>) które sygnalizują, że dany fragment kodu może się nie udać i wymusza to na nas dbałość o zaopiekowanie każdej możliwości (w scali dopiero przy pattern matchingu).
-Aby rozwinąć dalej projekt należało by umożliwić parametryzowanie działania (które piny podłączamy czy w jakim trybie działamy) przykładowo przy użyciu crate <a href=https://crates.io/crates/config>config</a>.</p><ul class=pa0><li class=list><a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a></li><li class=list><a href=/tags/raspberry-pi class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a></li></ul><div class="mt6 instapaper_ignoref"><div id=disqus_thread></div><script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return;}
-var d=document,s=d.createElement('script');s.async=true;s.src='//'+"flakm-blog"+'.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></div><aside class="w-30-l mt6-l"><div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links"><p class="f5 b mb3">Related</p><ul class="pa0 list"><li class=mb2><a href=/posts/rustyled/>Rustberry PI - LED</a></li></ul></div></aside></article></main><footer class="bg-black bottom-0 w-100 pa3" role=contentinfo><div class="flex justify-between"><a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>&copy; Copyright © 2020, Maciej Flak; all rights reserved. 2020</a><div></div></div></footer><script src=/dist/js/app.3fc0f988d21662902933.js></script></body></html>
+Aby rozwinąć dalej projekt należało by umożliwić parametryzowanie działania (które piny podłączamy czy w jakim trybie działamy) przykładowo przy użyciu crate <a href=https://crates.io/crates/config>config</a>.</p>
+<script defer language=javascript type=text/javascript src=/js/add_anchors.js></script>
+<ul class=pa0>
+<li class="list di">
+<a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a>
+</li>
+<li class="list di">
+<a href=/tags/raspberry-pi class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a>
+</li>
+</ul>
+<div class="mt6 instapaper_ignoref">
+<div id=disqus_thread></div>
+<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//flakm-blog.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
+<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+</div>
+<aside class="w-30-l mt6-l">
+<div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links">
+<p class="f5 b mb3">Related</p>
+<ul class="pa0 list">
+<li class=mb2>
+<a href=/posts/rustyled/>Rustberry PI - LED</a>
+</li>
+</ul>
+</div>
+</aside>
+</article>
+</main>
+<footer class="bg-black bottom-0 w-100 pa3" role=contentinfo>
+<div class="flex justify-between">
+<a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>
+&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022
+</a>
+<div>
+<div class=ananke-socials>
+<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
+<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
+</span>
+<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
+</span></a>
+</div>
+</div>
+</div>
+</footer>
+</body>
+</html>
