@@ -1,323 +1,165 @@
-<!doctype html><html lang=pl>
-<head>
-<meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge,chrome=1">
-<title>Rustberry PI - DHT11 | FlakM blog</title>
-<meta name=viewport content="width=device-width,minimum-scale=1">
-<meta name=description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie">
-<meta name=generator content="Hugo 0.91.2">
-<meta name=robots content="index, follow">
-<link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css>
-<link rel=stylesheet href=/css/main.css>
-<meta property="og:title" content="Rustberry PI - DHT11">
-<meta property="og:description" content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://flakm.github.io/posts/rustydht11/"><meta property="og:image" content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2020-08-02T13:12:54+02:00">
-<meta property="article:modified_time" content="2020-08-02T13:12:54+02:00">
-<meta property="og:see_also" content="https://flakm.github.io/posts/rustylcd/"><meta property="og:see_also" content="https://flakm.github.io/posts/rustyled/">
-<meta itemprop=name content="Rustberry PI - DHT11">
-<meta itemprop=description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie"><meta itemprop=datePublished content="2020-08-02T13:12:54+02:00">
-<meta itemprop=dateModified content="2020-08-02T13:12:54+02:00">
-<meta itemprop=wordCount content="887"><meta itemprop=image content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg">
-<meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image">
-<meta name=twitter:image content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg">
-<meta name=twitter:title content="Rustberry PI - DHT11">
-<meta name=twitter:description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie">
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga('create','G-3TLSQC3STQ','auto'),ga('send','pageview'))</script>
-<script async src=https://www.google-analytics.com/analytics.js></script>
-</head>
-<body class="ma0 avenir bg-near-white production">
-<header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg)>
-<div class=bg-black-60>
-<nav class="pv3 ph3 ph4-ns" role=navigation>
-<div class="flex-l justify-between items-center center">
-<a href=/ class="f3 fw2 hover-white no-underline white-90 dib">
-FlakM blog
-</a>
-<div class="flex-l items-center">
-<ul class="pl0 mr3">
-<li class="list f5 f4-ns fw4 dib pr3">
-<a class="hover-white no-underline white-90" href=/ title="Home page">
-Home
-</a>
-</li>
-<li class="list f5 f4-ns fw4 dib pr3">
-<a class="hover-white no-underline white-90" href=/about/ title="About me page">
-About me
-</a>
-</li>
-</ul>
-<div class=ananke-socials>
-<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
-<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
-</span>
-<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
-</span></a>
-</div>
-</div>
-</div>
-</nav>
-<div class="tc-l pv6 ph3 ph4-ns">
-<h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - DHT11</h1>
-</div>
-</div>
-</header>
-<main class=pb7 role=main>
-<article class="flex-l flex-wrap justify-between mw8 center ph3">
-<header class="mt4 w-100">
-<aside class="instapaper_ignoref b helvetica tracked">
-POSTS
-</aside>
-<div id=sharing class="mt3 ananke-socials">
-</div>
-<h1 class="f1 athelas mt3 mb1">Rustberry PI - DHT11</h1>
-<p class=tracked>
-By <strong>flakm</strong>
-</p>
-<time class="f6 mv4 dib tracked" datetime=2020-08-02T13:12:54+02:00>August 2, 2020</time>
-<span class="f6 mv4 dib tracked"> - 5 minutes read </span>
-<span class="f6 mv4 dib tracked"> - 887 words </span>
-</header>
-<div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><div class=danger>
-<p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
-<a href=https://github.com/FlakM/rustberry>tutaj</a>
-</p>
-</div>
-<p>W poprzednim wpisie o <a href=https://flakm.github.io/posts/rustylcd/>wyświetlaczu LCD</a> uczyłem się jak przy wykorzystaniu maliny, rusta i prostego wyświetlacza zaprezentować dane użytkownikowi.
-Kolejnym elementem w moim zestawie startowym jest czujnik wilgotności <a href=https://www.waveshare.com/wiki/DHT11_Temperature-Humidity_Sensor>DHT11</a>.</p>
-<p>Czujnik DHT11 zgodnie z <a href=https://www.waveshare.com/w/upload/c/c7/DHT11_datasheet.pdf>dokumentacją</a> jest w stanie mierzyć relatywną wilgotność z dokładnością +/-5% a temperatury +/-2°C.
-Zupełnie wystarczająco na potrzeby domowego projektu. Do komunikacji z maliną wykorzystuje pojedynczy pin GPIO. Sterując czujnikiem należy wysyłać i odbierać sygnały w określonej sekwencji zgodnej z protokołem - inaczej czujnik nie będzie wysyłał poprawnych pomiarów.</p>
-<h2 id=budowa-projektu>Budowa projektu</h2>
-<p>W pierwszej kolejności w <code>lib.rs</code> tworzę obiekty domenowe:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DHT11</span> {
-    pin: <span style=color:#a6e22e>IoPin</span>,
-}
-
-<span style=color:#75715e>#[derive(Debug)]</span>
-<span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Readings</span> {
-    <span style=color:#66d9ef>pub</span> temperature: <span style=color:#66d9ef>f64</span>,
-    <span style=color:#66d9ef>pub</span> humidity: <span style=color:#66d9ef>f64</span>,
-}
-</code></pre></div><p>Sygnał odebrany od czujnika składa się z 40 bitów.</p>
-<ol>
-<li>Pierwszy bajt zawiera część odczytu wilgotności przed przecinkiem</li>
-<li>Drugi bajt zawiera część odczytu wilgotności po przecinku</li>
-<li>Trzeci bajt zawiera cześć odczytu temperatury przed przecinkiem</li>
-<li>Czwarty bajt zawiera część odczytu temperatury po przecinku</li>
-<li>Piąty bajt zawiera sumę kontrolną - sumę poprzednich bajtów</li>
-</ol>
-<p>Dlatego struct <code>Readings</code> zawiera dwa pola - jedno zawierające temperraturę, drugie wilgotność.
-Jako, że czujnik DHT11 do komunikacji używa pojedynczego pina który jest zarówno wejściem i wyjściem to struct <code>DHT11</code> zawiera jedno pole. Oprócz tego aby umożliwić czytelny wydruk (czasem wartości mogą mieć podobne wartości) należy zaimplementować traita <code>fmt::Display</code>:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>impl</span> fmt::Display <span style=color:#66d9ef>for</span> Readings {
-    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>fmt</span>(<span style=color:#f92672>&amp;</span>self, f: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> fmt::Formatter<span style=color:#f92672>&lt;&#39;</span>_<span style=color:#f92672>&gt;</span>) -&gt; <span style=color:#a6e22e>fmt</span>::Result {
-        write!(
-            f,
-            <span style=color:#e6db74>&#34;Readings({:.2}%, {:.2}C)&#34;</span>,
-            self.humidity, self.temperature
-        )
-    }
-}
-</code></pre></div><p>Pora rozpocząć implementację odczytu wartości naszego czujnika!</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>
-<span style=color:#66d9ef>impl</span> DHT11 {
-    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>new</span>(gpio_num: <span style=color:#66d9ef>u8</span>) -&gt; Result<span style=color:#f92672>&lt;</span>DHT11<span style=color:#f92672>&gt;</span> {
-        Ok(DHT11 {
-            pin: <span style=color:#a6e22e>Gpio</span>::new()<span style=color:#f92672>?</span>.get(gpio_num)<span style=color:#f92672>?</span>.into_io(Mode::Output),
-        })
-    }
-
-    <span style=color:#e6db74>/// initialize
-</span><span style=color:#e6db74></span>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init_sequence</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; () {
-        <span style=color:#75715e>// step 2 of documentation
-</span><span style=color:#75715e></span>        self.pin.set_mode(Mode::Output);
-        self.pin.set_low();
-        delay_ms(<span style=color:#ae81ff>18</span>);
-        self.pin.set_high();
-        delay_us(<span style=color:#ae81ff>50</span>)
-    }
-
-    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>read</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; Result<span style=color:#f92672>&lt;</span>Readings<span style=color:#f92672>&gt;</span> {
-        self.init_sequence();
-
-        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> bytes <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span>; <span style=color:#ae81ff>5</span>];
-
-        {
-            <span style=color:#75715e>// step 3 of documentation
-</span><span style=color:#75715e></span>            self.pin.set_mode(Mode::Input);
-            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
-            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-
-            <span style=color:#75715e>// step 4 of documentation
-</span><span style=color:#75715e></span>            <span style=color:#66d9ef>for</span> b <span style=color:#66d9ef>in</span> bytes.iter_mut() {
-                <span style=color:#66d9ef>for</span> _ <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#f92672>..</span><span style=color:#ae81ff>8</span> {
-                    <span style=color:#f92672>*</span>b <span style=color:#f92672>&lt;&lt;=</span> <span style=color:#ae81ff>1</span>;
-                    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
-                    <span style=color:#66d9ef>let</span> dur <span style=color:#f92672>=</span> wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-                    <span style=color:#66d9ef>if</span> dur <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>26</span> {
-                        <span style=color:#f92672>*</span>b <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span>;
-                    }
-                }
-            }
-        }
-
-        <span style=color:#66d9ef>let</span> sum: <span style=color:#66d9ef>u16</span> <span style=color:#f92672>=</span> bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum();
-        <span style=color:#66d9ef>if</span> bytes[<span style=color:#ae81ff>4</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span> <span style=color:#f92672>==</span> sum <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>0x00FF</span> {
-            Ok(Readings {
-                temperature: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>2</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>3</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
-                humidity: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>0</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>1</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
-            })
-        } <span style=color:#66d9ef>else</span> {
-            Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Check sum!&#34;</span>))
-        }
-    }
-}
-
-<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>wait_level</span>(pin: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> IoPin, level: <span style=color:#a6e22e>Level</span>) -&gt; Result<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>&gt;</span> {
-    <span style=color:#66d9ef>for</span> i <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>..</span><span style=color:#ae81ff>255</span> {
-        <span style=color:#66d9ef>if</span> pin.read() <span style=color:#f92672>==</span> level {
-            <span style=color:#66d9ef>return</span> Ok(i);
-        }
-        delay_us(<span style=color:#ae81ff>1</span>);
-    }
-    Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Timeout!&#34;</span>))
-}
-
-</code></pre></div><p>Dodajemy funkcję <code>new</code> która umożliwia na wskazanie numeru pin, do którego będzie podłączona szyna danych w naszym czujniku.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>new</span>(gpio_num: <span style=color:#66d9ef>u8</span>) -&gt; Result<span style=color:#f92672>&lt;</span>DHT11<span style=color:#f92672>&gt;</span> {
-        Ok(DHT11 {
-            pin: <span style=color:#a6e22e>Gpio</span>::new()<span style=color:#f92672>?</span>.get(gpio_num)<span style=color:#f92672>?</span>.into_io(Mode::Output),
-        })
-    }
-</code></pre></div><p>Zgodnie z dokumentacją czujnika, przed każdym odczytem należy wykonać inicjalizację, czyli ustawić pin w stan niski na 18 ms i zmienić na stan wysoki:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init_sequence</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; () {
-        <span style=color:#75715e>// step 2 of documentation
-</span><span style=color:#75715e></span>        self.pin.set_mode(Mode::Output);
-        self.pin.set_low();
-        delay_ms(<span style=color:#ae81ff>18</span>);
-        self.pin.set_high();
-        delay_us(<span style=color:#ae81ff>50</span>)
-    }
-</code></pre></div><p>W dalszej kolejności musimy przejść w tryb wejściowy i odebrać 40 bitów sygnału.
+<!doctype html><html lang=pl><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Rustberry PI - DHT11 | FlakM blog</title><meta name=viewport content="width=device-width,minimum-scale=1"><meta name=description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie"><meta name=generator content="Hugo 0.103.1"><meta name=robots content="index, follow"><link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css><link rel=stylesheet href=/css/main.css><meta property="og:title" content="Rustberry PI - DHT11"><meta property="og:description" content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie"><meta property="og:type" content="article"><meta property="og:url" content="https://flakm.github.io/posts/rustydht11/"><meta property="og:image" content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-08-02T13:12:54+02:00"><meta property="article:modified_time" content="2020-08-02T13:12:54+02:00"><meta property="og:see_also" content="https://flakm.github.io/posts/rustylcd/"><meta property="og:see_also" content="https://flakm.github.io/posts/rustyled/"><meta itemprop=name content="Rustberry PI - DHT11"><meta itemprop=description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie"><meta itemprop=datePublished content="2020-08-02T13:12:54+02:00"><meta itemprop=dateModified content="2020-08-02T13:12:54+02:00"><meta itemprop=wordCount content="887"><meta itemprop=image content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg"><meta itemprop=keywords content="rust,raspberry pi,"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg"><meta name=twitter:title content="Rustberry PI - DHT11"><meta name=twitter:description content="Uczę się obsługiwać czujnik wilgoci i temperatury DHT11 z użyciem rust i prezentuję wyników na ekranie lcd używając biblioteki zbudowanej w poprzednim wpisie"><script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(e,t,n,s,o,i,a){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,i=t.createElement(n),a=t.getElementsByTagName(n)[0],i.async=1,i.src=s,a.parentNode.insertBefore(i,a)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-172669006-1","auto"),ga("send","pageview"))</script></head><body class="ma0 avenir bg-near-white production"><header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/rustypi/dht11/20200802_131543.jpg)><div class=bg-black-60><nav class="pv3 ph3 ph4-ns" role=navigation><div class="flex-l justify-between items-center center"><a href=/ class="f3 fw2 hover-white no-underline white-90 dib">FlakM blog</a><div class="flex-l items-center"><ul class="pl0 mr3"><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/ title="Home page">Home</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/about/ title="About me page">About me</a></li></ul><div class=ananke-socials><a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window"><span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg></span><span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></span></a></div></div></div></nav><div class="tc-l pv6 ph3 ph4-ns"><h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Rustberry PI - DHT11</h1></div></div></header><main class=pb7 role=main><article class="flex-l flex-wrap justify-between mw8 center ph3"><header class="mt4 w-100"><aside class="instapaper_ignoref b helvetica tracked">POSTS</aside><div id=sharing class="mt3 ananke-socials"></div><h1 class="f1 athelas mt3 mb1">Rustberry PI - DHT11</h1><p class=tracked>By <strong>flakm</strong></p><time class="f6 mv4 dib tracked" datetime=2020-08-02T13:12:54+02:00>August 2, 2020</time>
+<span class="f6 mv4 dib tracked">- 5 minutes read</span>
+<span class="f6 mv4 dib tracked">- 887 words</span></header><div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><div class=danger><p><strong>Uwaga!</strong> pełen kod tego wpisu dostępny jest
+<a href=https://github.com/FlakM/rustberry>tutaj</a></p></div><p>W poprzednim wpisie o <a href=https://flakm.github.io/posts/rustylcd/>wyświetlaczu LCD</a> uczyłem się jak przy wykorzystaniu maliny, rusta i prostego wyświetlacza zaprezentować dane użytkownikowi.
+Kolejnym elementem w moim zestawie startowym jest czujnik wilgotności <a href=https://www.waveshare.com/wiki/DHT11_Temperature-Humidity_Sensor>DHT11</a>.</p><p>Czujnik DHT11 zgodnie z <a href=https://www.waveshare.com/w/upload/c/c7/DHT11_datasheet.pdf>dokumentacją</a> jest w stanie mierzyć relatywną wilgotność z dokładnością +/-5% a temperatury +/-2°C.
+Zupełnie wystarczająco na potrzeby domowego projektu. Do komunikacji z maliną wykorzystuje pojedynczy pin GPIO. Sterując czujnikiem należy wysyłać i odbierać sygnały w określonej sekwencji zgodnej z protokołem - inaczej czujnik nie będzie wysyłał poprawnych pomiarów.</p><h2 id=budowa-projektu>Budowa projektu</h2><p>W pierwszej kolejności w <code>lib.rs</code> tworzę obiekty domenowe:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DHT11</span> {
+</span></span><span style=display:flex><span>    pin: <span style=color:#a6e22e>IoPin</span>,
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#[derive(Debug)]</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>Readings</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> temperature: <span style=color:#66d9ef>f64</span>,
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> humidity: <span style=color:#66d9ef>f64</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Sygnał odebrany od czujnika składa się z 40 bitów.</p><ol><li>Pierwszy bajt zawiera część odczytu wilgotności przed przecinkiem</li><li>Drugi bajt zawiera część odczytu wilgotności po przecinku</li><li>Trzeci bajt zawiera cześć odczytu temperatury przed przecinkiem</li><li>Czwarty bajt zawiera część odczytu temperatury po przecinku</li><li>Piąty bajt zawiera sumę kontrolną - sumę poprzednich bajtów</li></ol><p>Dlatego struct <code>Readings</code> zawiera dwa pola - jedno zawierające temperraturę, drugie wilgotność.
+Jako, że czujnik DHT11 do komunikacji używa pojedynczego pina który jest zarówno wejściem i wyjściem to struct <code>DHT11</code> zawiera jedno pole. Oprócz tego aby umożliwić czytelny wydruk (czasem wartości mogą mieć podobne wartości) należy zaimplementować traita <code>fmt::Display</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>impl</span> fmt::Display <span style=color:#66d9ef>for</span> Readings {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>fmt</span>(<span style=color:#f92672>&amp;</span>self, f: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> fmt::Formatter<span style=color:#f92672>&lt;&#39;</span>_<span style=color:#f92672>&gt;</span>) -&gt; <span style=color:#a6e22e>fmt</span>::Result {
+</span></span><span style=display:flex><span>        write!(
+</span></span><span style=display:flex><span>            f,
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Readings({:.2}%, {:.2}C)&#34;</span>,
+</span></span><span style=display:flex><span>            self.humidity, self.temperature
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Pora rozpocząć implementację odczytu wartości naszego czujnika!</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>impl</span> DHT11 {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>new</span>(gpio_num: <span style=color:#66d9ef>u8</span>) -&gt; Result<span style=color:#f92672>&lt;</span>DHT11<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>        Ok(DHT11 {
+</span></span><span style=display:flex><span>            pin: <span style=color:#a6e22e>Gpio</span>::new()<span style=color:#f92672>?</span>.get(gpio_num)<span style=color:#f92672>?</span>.into_io(Mode::Output),
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>/// initialize
+</span></span></span><span style=display:flex><span><span style=color:#e6db74></span>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init_sequence</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; () {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// step 2 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        self.pin.set_mode(Mode::Output);
+</span></span><span style=display:flex><span>        self.pin.set_low();
+</span></span><span style=display:flex><span>        delay_ms(<span style=color:#ae81ff>18</span>);
+</span></span><span style=display:flex><span>        self.pin.set_high();
+</span></span><span style=display:flex><span>        delay_us(<span style=color:#ae81ff>50</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>read</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; Result<span style=color:#f92672>&lt;</span>Readings<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>        self.init_sequence();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> bytes <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span>; <span style=color:#ae81ff>5</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// step 3 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            self.pin.set_mode(Mode::Input);
+</span></span><span style=display:flex><span>            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>            wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// step 4 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>for</span> b <span style=color:#66d9ef>in</span> bytes.iter_mut() {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>for</span> _ <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#f92672>..</span><span style=color:#ae81ff>8</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#f92672>*</span>b <span style=color:#f92672>&lt;&lt;=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>                    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>let</span> dur <span style=color:#f92672>=</span> wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>if</span> dur <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>26</span> {
+</span></span><span style=display:flex><span>                        <span style=color:#f92672>*</span>b <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> sum: <span style=color:#66d9ef>u16</span> <span style=color:#f92672>=</span> bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> bytes[<span style=color:#ae81ff>4</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span> <span style=color:#f92672>==</span> sum <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>0x00FF</span> {
+</span></span><span style=display:flex><span>            Ok(Readings {
+</span></span><span style=display:flex><span>                temperature: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>2</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>3</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
+</span></span><span style=display:flex><span>                humidity: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>0</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>1</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
+</span></span><span style=display:flex><span>            })
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>            Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Check sum!&#34;</span>))
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>wait_level</span>(pin: <span style=color:#66d9ef>&amp;</span><span style=color:#a6e22e>mut</span> IoPin, level: <span style=color:#a6e22e>Level</span>) -&gt; Result<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span><span style=color:#f92672>..</span><span style=color:#ae81ff>255</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> pin.read() <span style=color:#f92672>==</span> level {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> Ok(i);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        delay_us(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Timeout!&#34;</span>))
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Dodajemy funkcję <code>new</code> która umożliwia na wskazanie numeru pin, do którego będzie podłączona szyna danych w naszym czujniku.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span>    <span style=color:#66d9ef>pub</span> <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>new</span>(gpio_num: <span style=color:#66d9ef>u8</span>) -&gt; Result<span style=color:#f92672>&lt;</span>DHT11<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>        Ok(DHT11 {
+</span></span><span style=display:flex><span>            pin: <span style=color:#a6e22e>Gpio</span>::new()<span style=color:#f92672>?</span>.get(gpio_num)<span style=color:#f92672>?</span>.into_io(Mode::Output),
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><p>Zgodnie z dokumentacją czujnika, przed każdym odczytem należy wykonać inicjalizację, czyli ustawić pin w stan niski na 18 ms i zmienić na stan wysoki:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span>    <span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>init_sequence</span>(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self) -&gt; () {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// step 2 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        self.pin.set_mode(Mode::Output);
+</span></span><span style=display:flex><span>        self.pin.set_low();
+</span></span><span style=display:flex><span>        delay_ms(<span style=color:#ae81ff>18</span>);
+</span></span><span style=display:flex><span>        self.pin.set_high();
+</span></span><span style=display:flex><span>        delay_us(<span style=color:#ae81ff>50</span>)
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><p>W dalszej kolejności musimy przejść w tryb wejściowy i odebrać 40 bitów sygnału.
 Zadanie to wykonuje metoda <code>read</code> przyjmująca jako argument mutowalną referencję do samego siebie.
-W tym momencie musimy oczekiwać w trybie wejściowym na sekwencję sygnałów:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>    <span style=color:#75715e>// step 3 of documentation
-</span><span style=color:#75715e></span>    self.pin.set_mode(Mode::Input);
-    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
-    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-</code></pre></div><p>Teraz możemy zainicjować tablicę spodziewanych 5 bajtów i przypisać im odpowiednie wartości:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> bytes <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span>; <span style=color:#ae81ff>5</span>];
-<span style=color:#75715e>// step 4 of documentation
-</span><span style=color:#75715e></span><span style=color:#66d9ef>for</span> b <span style=color:#66d9ef>in</span> bytes.iter_mut() {
-    <span style=color:#66d9ef>for</span> _ <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#f92672>..</span><span style=color:#ae81ff>8</span> {
-        <span style=color:#f92672>*</span>b <span style=color:#f92672>&lt;&lt;=</span> <span style=color:#ae81ff>1</span>;
-        wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
-        <span style=color:#66d9ef>let</span> dur <span style=color:#f92672>=</span> wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
-        <span style=color:#66d9ef>if</span> dur <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>26</span> {
-            <span style=color:#f92672>*</span>b <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span>;
-        }
-    }
-}
-</code></pre></div><p>Pozostaje sprawdzić czy suma kontrolna znajdująca się w ostatnim bajcie jest zgodna z odczytami.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>let</span> sum: <span style=color:#66d9ef>u16</span> <span style=color:#f92672>=</span> bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum();
-<span style=color:#66d9ef>if</span> bytes[<span style=color:#ae81ff>4</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span> <span style=color:#f92672>==</span> sum <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>0x00FF</span> {
-    Ok(Readings {
-        temperature: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>2</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>3</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
-        humidity: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>0</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>1</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
-    })
-} <span style=color:#66d9ef>else</span> {
-    Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Check sum!&#34;</span>))
-}
-</code></pre></div><p>Pierwszy bajt zawiera pełnoliczbową część odczytu wilgotności, drugi część dziesiętną. Analogicznie w przypadku bajtów 3 i 4 jedynie dla temperatury.
-Suma kontrolna liczona jest jako suma kolejnych bajtów:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust>bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum()
-</code></pre></div><h2 id=złożenie-kodu-w-całość>Złożenie kodu w całość</h2>
-<p>W celu prezentacji otrzymanych odczytów możemy użyć układu z poprzedniego wpisu i wyświetlić je na wyświetlaczu LCD. W tym celu najpierw musimy dodać zależność do modułu z biblioteką zawierającą kod z poprzedniego rozdziału. Zakładając taką samą strukturę kodu jak w repozytorium <a href=https://github.com/FlakM/rustberry>rustberry</a> starczy dodać jedną linijkę do pliku cargo.toml w bloku zależności:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=color:#a6e22e>lcd</span> = { <span style=color:#a6e22e>path</span> = <span style=color:#e6db74>&#34;../lcd&#34;</span> }
-</code></pre></div><p>A następnie w pliku <code>main.rs</code> możemy napisać:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> anyhow::Result;
-<span style=color:#66d9ef>use</span> dht11::DHT11;
-<span style=color:#66d9ef>use</span> lcd::Lcd;
-
-<span style=color:#66d9ef>use</span> std::{thread, time::Duration};
-<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>()-&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
-    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> sensor <span style=color:#f92672>=</span> DHT11::new(<span style=color:#ae81ff>21</span>)<span style=color:#f92672>?</span>;
-    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> lcd <span style=color:#f92672>=</span> Lcd::new()<span style=color:#f92672>?</span>;
-    lcd.init()<span style=color:#f92672>?</span>;
-
-    <span style=color:#66d9ef>loop</span> {
-
-        <span style=color:#66d9ef>let</span> result <span style=color:#f92672>=</span> sensor.read();
-
-        <span style=color:#66d9ef>match</span> result {
-            Ok(readings) <span style=color:#f92672>=&gt;</span> {
-                println!(<span style=color:#e6db74>&#34;{}&#34;</span>, readings);
-                <span style=color:#66d9ef>let</span> msg <span style=color:#f92672>=</span> format!(<span style=color:#e6db74>&#34;Temp:      {:.1}C\nHumid:     {:.1}%&#34;</span>, readings.temperature, readings.humidity);
-                lcd.message(msg)<span style=color:#f92672>?</span>
-
-            },
-
-            Err(err) <span style=color:#f92672>=&gt;</span> eprintln!(<span style=color:#e6db74>&#34;{}&#34;</span>,err)
-        }
-
-        
-        thread::sleep(Duration::from_secs(<span style=color:#ae81ff>3</span>));
-    }
-
-}
-</code></pre></div><p>Jeżeli wykonaliśmy poprawnie podłączenie czujnika i ekranu, to dostaniemy w efekcie odczyty wyświetlane na naszym ekranie!</p>
-<h2 id=podsumowanie>Podsumowanie</h2>
-<p>Nauczyłem się obsługiwać czujnik wilgotności i temperatury DHT11 przy wykorzystaniu pinów GPIO w trybie wejścia/wyjścia.
+W tym momencie musimy oczekiwać w trybie wejściowym na sekwencję sygnałów:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span>    <span style=color:#75715e>// step 3 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    self.pin.set_mode(Mode::Input);
+</span></span><span style=display:flex><span>    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>    wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span></code></pre></div><p>Teraz możemy zainicjować tablicę spodziewanych 5 bajtów i przypisać im odpowiednie wartości:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> bytes <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span><span style=color:#66d9ef>u8</span>; <span style=color:#ae81ff>5</span>];
+</span></span><span style=display:flex><span><span style=color:#75715e>// step 4 of documentation
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>for</span> b <span style=color:#66d9ef>in</span> bytes.iter_mut() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> _ <span style=color:#66d9ef>in</span> <span style=color:#ae81ff>0</span><span style=color:#f92672>..</span><span style=color:#ae81ff>8</span> {
+</span></span><span style=display:flex><span>        <span style=color:#f92672>*</span>b <span style=color:#f92672>&lt;&lt;=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>        wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::High)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> dur <span style=color:#f92672>=</span> wait_level(<span style=color:#f92672>&amp;</span><span style=color:#66d9ef>mut</span> self.pin, Level::Low)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> dur <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>26</span> {
+</span></span><span style=display:flex><span>            <span style=color:#f92672>*</span>b <span style=color:#f92672>|=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Pozostaje sprawdzić czy suma kontrolna znajdująca się w ostatnim bajcie jest zgodna z odczytami.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>let</span> sum: <span style=color:#66d9ef>u16</span> <span style=color:#f92672>=</span> bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span> bytes[<span style=color:#ae81ff>4</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span> <span style=color:#f92672>==</span> sum <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>0x00FF</span> {
+</span></span><span style=display:flex><span>    Ok(Readings {
+</span></span><span style=display:flex><span>        temperature: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>2</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>3</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
+</span></span><span style=display:flex><span>        humidity: <span style=color:#a6e22e>bytes</span>[<span style=color:#ae81ff>0</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>+</span> (bytes[<span style=color:#ae81ff>1</span>] <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>f64</span> <span style=color:#f92672>/</span> <span style=color:#ae81ff>10.0</span>),
+</span></span><span style=display:flex><span>    })
+</span></span><span style=display:flex><span>} <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    Err(anyhow<span style=color:#f92672>!</span>(<span style=color:#e6db74>&#34;Check sum!&#34;</span>))
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Pierwszy bajt zawiera pełnoliczbową część odczytu wilgotności, drugi część dziesiętną. Analogicznie w przypadku bajtów 3 i 4 jedynie dla temperatury.
+Suma kontrolna liczona jest jako suma kolejnych bajtów:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span>bytes.iter().take(<span style=color:#ae81ff>4</span>).map(<span style=color:#f92672>|</span>b<span style=color:#f92672>|</span> <span style=color:#f92672>*</span>b <span style=color:#66d9ef>as</span> <span style=color:#66d9ef>u16</span>).sum()
+</span></span></code></pre></div><h2 id=złożenie-kodu-w-całość>Złożenie kodu w całość</h2><p>W celu prezentacji otrzymanych odczytów możemy użyć układu z poprzedniego wpisu i wyświetlić je na wyświetlaczu LCD. W tym celu najpierw musimy dodać zależność do modułu z biblioteką zawierającą kod z poprzedniego rozdziału. Zakładając taką samą strukturę kodu jak w repozytorium <a href=https://github.com/FlakM/rustberry>rustberry</a> starczy dodać jedną linijkę do pliku cargo.toml w bloku zależności:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-toml data-lang=toml><span style=display:flex><span><span style=color:#a6e22e>lcd</span> = { <span style=color:#a6e22e>path</span> = <span style=color:#e6db74>&#34;../lcd&#34;</span> }
+</span></span></code></pre></div><p>A następnie w pliku <code>main.rs</code> możemy napisać:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>use</span> anyhow::Result;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> dht11::DHT11;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> lcd::Lcd;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>use</span> std::{thread, time::Duration};
+</span></span><span style=display:flex><span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>()-&gt; Result<span style=color:#f92672>&lt;</span>()<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> sensor <span style=color:#f92672>=</span> DHT11::new(<span style=color:#ae81ff>21</span>)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> lcd <span style=color:#f92672>=</span> Lcd::new()<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>    lcd.init()<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>loop</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> result <span style=color:#f92672>=</span> sensor.read();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>match</span> result {
+</span></span><span style=display:flex><span>            Ok(readings) <span style=color:#f92672>=&gt;</span> {
+</span></span><span style=display:flex><span>                println!(<span style=color:#e6db74>&#34;{}&#34;</span>, readings);
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>let</span> msg <span style=color:#f92672>=</span> format!(<span style=color:#e6db74>&#34;Temp:      {:.1}C\nHumid:     {:.1}%&#34;</span>, readings.temperature, readings.humidity);
+</span></span><span style=display:flex><span>                lcd.message(msg)<span style=color:#f92672>?</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            Err(err) <span style=color:#f92672>=&gt;</span> eprintln!(<span style=color:#e6db74>&#34;{}&#34;</span>,err)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        thread::sleep(Duration::from_secs(<span style=color:#ae81ff>3</span>));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Jeżeli wykonaliśmy poprawnie podłączenie czujnika i ekranu, to dostaniemy w efekcie odczyty wyświetlane na naszym ekranie!</p><h2 id=podsumowanie>Podsumowanie</h2><p>Nauczyłem się obsługiwać czujnik wilgotności i temperatury DHT11 przy wykorzystaniu pinów GPIO w trybie wejścia/wyjścia.
 Przy okazji nauczyłem się używać własnych bibliotek jako podmoduły projektu.
-Okazuje się, że łączenie wielu projektów przy wykorzystaniu <code>cargo</code> jest bardzo przyjemne i nie różni się niczym względem dodania zależności do crate z crate.rs.</p>
-<script defer language=javascript type=text/javascript src=/js/add_anchors.js></script>
-<ul class=pa0>
-<li class="list di">
-<a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a>
-</li>
-<li class="list di">
-<a href=/tags/raspberry-pi class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a>
-</li>
-</ul>
-<div class="mt6 instapaper_ignoref">
-<div id=disqus_thread></div>
-<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//flakm-blog.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
-<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
-<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
-</div>
-</div>
-<aside class="w-30-l mt6-l">
-<div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links">
-<p class="f5 b mb3">Related</p>
-<ul class="pa0 list">
-<li class=mb2>
-<a href=/posts/rustylcd/>Rustberry PI - LCD</a>
-</li>
-<li class=mb2>
-<a href=/posts/rustyled/>Rustberry PI - LED</a>
-</li>
-</ul>
-</div>
-</aside>
-</article>
-</main>
-<footer class="bg-black bottom-0 w-100 pa3" role=contentinfo>
-<div class="flex justify-between">
-<a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>
-&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022
-</a>
-<div>
-<div class=ananke-socials>
-<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
-<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
-</span>
-<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
-</span></a>
-</div>
-</div>
-</div>
-</footer>
-</body>
-</html>
+Okazuje się, że łączenie wielu projektów przy wykorzystaniu <code>cargo</code> jest bardzo przyjemne i nie różni się niczym względem dodania zależności do crate z crate.rs.</p><script defer language=javascript type=text/javascript src=/js/add_anchors.js></script><ul class=pa0><li class="list di"><a href=/tags/rust/ class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a></li><li class="list di"><a href=/tags/raspberry-pi/ class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">raspberry pi</a></li></ul><div class="mt6 instapaper_ignoref"></div></div><aside class="w-30-l mt6-l"><div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links"><p class="f5 b mb3">Related</p><ul class="pa0 list"><li class=mb2><a href=/posts/rustylcd/>Rustberry PI - LCD</a></li><li class=mb2><a href=/posts/rustyled/>Rustberry PI - LED</a></li></ul></div></aside></article></main><footer class="bg-black bottom-0 w-100 pa3" role=contentinfo><div class="flex justify-between"><a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022</a><div><div class=ananke-socials><a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window"><span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg></span><span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></span></a></div></div></div></footer></body></html>

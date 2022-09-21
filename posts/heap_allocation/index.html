@@ -1,156 +1,64 @@
-<!doctype html><html lang=pl>
-<head>
-<meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge,chrome=1">
-<title>Profiling heap allocation in rust | FlakM blog</title>
-<meta name=viewport content="width=device-width,minimum-scale=1">
-<meta name=description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack">
-<meta name=generator content="Hugo 0.91.2">
-<meta name=robots content="index, follow">
-<link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css>
-<link rel=stylesheet href=/css/main.css>
-<meta property="og:title" content="Profiling heap allocation in rust">
-<meta property="og:description" content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://flakm.github.io/posts/heap_allocation/"><meta property="og:image" content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2022-03-07T14:12:20+01:00">
-<meta property="article:modified_time" content="2022-03-07T14:12:20+01:00">
-<meta itemprop=name content="Profiling heap allocation in rust">
-<meta itemprop=description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack"><meta itemprop=datePublished content="2022-03-07T14:12:20+01:00">
-<meta itemprop=dateModified content="2022-03-07T14:12:20+01:00">
-<meta itemprop=wordCount content="1686"><meta itemprop=image content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg">
-<meta itemprop=keywords content="rust,english,"><meta name=twitter:card content="summary_large_image">
-<meta name=twitter:image content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg">
-<meta name=twitter:title content="Profiling heap allocation in rust">
-<meta name=twitter:description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack">
-<script type=application/javascript>var doNotTrack=!1;doNotTrack||(window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)},ga.l=+new Date,ga('create','G-3TLSQC3STQ','auto'),ga('send','pageview'))</script>
-<script async src=https://www.google-analytics.com/analytics.js></script>
-</head>
-<body class="ma0 avenir bg-near-white production">
-<header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg)>
-<div class=bg-black-60>
-<nav class="pv3 ph3 ph4-ns" role=navigation>
-<div class="flex-l justify-between items-center center">
-<a href=/ class="f3 fw2 hover-white no-underline white-90 dib">
-FlakM blog
-</a>
-<div class="flex-l items-center">
-<ul class="pl0 mr3">
-<li class="list f5 f4-ns fw4 dib pr3">
-<a class="hover-white no-underline white-90" href=/ title="Home page">
-Home
-</a>
-</li>
-<li class="list f5 f4-ns fw4 dib pr3">
-<a class="hover-white no-underline white-90" href=/about/ title="About me page">
-About me
-</a>
-</li>
-</ul>
-<div class=ananke-socials>
-<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
-<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
-</span>
-<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
-</span></a>
-</div>
-</div>
-</div>
-</nav>
-<div class="tc-l pv6 ph3 ph4-ns">
-<h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Profiling heap allocation in rust</h1>
-</div>
-</div>
-</header>
-<main class=pb7 role=main>
-<article class="flex-l flex-wrap justify-between mw8 center ph3">
-<header class="mt4 w-100">
-<aside class="instapaper_ignoref b helvetica tracked">
-POSTS
-</aside>
-<div id=sharing class="mt3 ananke-socials">
-</div>
-<h1 class="f1 athelas mt3 mb1">Profiling heap allocation in rust</h1>
-<p class=tracked>
-By <strong>flakm</strong>
-</p>
-<time class="f6 mv4 dib tracked" datetime=2022-03-07T14:12:20+01:00>March 7, 2022</time>
-<span class="f6 mv4 dib tracked"> - 8 minutes read </span>
-<span class="f6 mv4 dib tracked"> - 1686 words </span>
-</header>
-<div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><h2 id=why-measure-memory-usage>Why measure memory usage</h2>
-<p>Memory is costly, cloud providers differentiate the services based on
+<!doctype html><html lang=pl><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><title>Profiling heap allocation in rust | FlakM blog</title><meta name=viewport content="width=device-width,minimum-scale=1"><meta name=description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack"><meta name=generator content="Hugo 0.103.1"><meta name=robots content="index, follow"><link rel=stylesheet href=/ananke/css/main.min.98b8feee71ad3d56ea881041d877c631e7268369636aa10acbcb1c7f3bd3ea41.css><link rel=stylesheet href=/css/main.css><meta property="og:title" content="Profiling heap allocation in rust"><meta property="og:description" content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack"><meta property="og:type" content="article"><meta property="og:url" content="https://flakm.github.io/posts/heap_allocation/"><meta property="og:image" content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-03-07T14:12:20+01:00"><meta property="article:modified_time" content="2022-03-07T14:12:20+01:00"><meta itemprop=name content="Profiling heap allocation in rust"><meta itemprop=description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack"><meta itemprop=datePublished content="2022-03-07T14:12:20+01:00"><meta itemprop=dateModified content="2022-03-07T14:12:20+01:00"><meta itemprop=wordCount content="1686"><meta itemprop=image content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg"><meta itemprop=keywords content="rust,english,"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg"><meta name=twitter:title content="Profiling heap allocation in rust"><meta name=twitter:description content="How to understand and then profile heap memory usage in rust application. With the company with old friends: pmap, strace and heaptrack"><script type=application/javascript>var doNotTrack=!1;doNotTrack||(function(e,t,n,s,o,i,a){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,i=t.createElement(n),a=t.getElementsByTagName(n)[0],i.async=1,i.src=s,a.parentNode.insertBefore(i,a)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-172669006-1","auto"),ga("send","pageview"))</script></head><body class="ma0 avenir bg-near-white production"><header class="cover bg-top" style=background-image:url(https://flakm.github.io/images/heap_track/markus-spiske-IiEFmIXZWSw-unsplash.jpg)><div class=bg-black-60><nav class="pv3 ph3 ph4-ns" role=navigation><div class="flex-l justify-between items-center center"><a href=/ class="f3 fw2 hover-white no-underline white-90 dib">FlakM blog</a><div class="flex-l items-center"><ul class="pl0 mr3"><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/ title="Home page">Home</a></li><li class="list f5 f4-ns fw4 dib pr3"><a class="hover-white no-underline white-90" href=/about/ title="About me page">About me</a></li></ul><div class=ananke-socials><a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window"><span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg></span><span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></span></a></div></div></div></nav><div class="tc-l pv6 ph3 ph4-ns"><h1 class="f2 f1-l fw2 white-90 mb0 lh-title">Profiling heap allocation in rust</h1></div></div></header><main class=pb7 role=main><article class="flex-l flex-wrap justify-between mw8 center ph3"><header class="mt4 w-100"><aside class="instapaper_ignoref b helvetica tracked">POSTS</aside><div id=sharing class="mt3 ananke-socials"></div><h1 class="f1 athelas mt3 mb1">Profiling heap allocation in rust</h1><p class=tracked>By <strong>flakm</strong></p><time class="f6 mv4 dib tracked" datetime=2022-03-07T14:12:20+01:00>March 7, 2022</time>
+<span class="f6 mv4 dib tracked">- 8 minutes read</span>
+<span class="f6 mv4 dib tracked">- 1686 words</span></header><div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><h2 id=why-measure-memory-usage>Why measure memory usage</h2><p>Memory is costly, cloud providers differentiate the services based on
 CPU/disk/network and <strong>memory</strong>.
-Measuring how much memory the application takes is a very useful skill.</p>
-<h2 id=example-problem>Example problem</h2>
-<p>The premise of this blog post is to show ways to profile heap usage of a rust application.
+Measuring how much memory the application takes is a very useful skill.</p><h2 id=example-problem>Example problem</h2><p>The premise of this blog post is to show ways to profile heap usage of a rust application.
 Application is reading potentially large csv into memory and then storing headers
-and fields for later access by index. Let&rsquo;s start an example project:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># the complete source code can be found here:</span>
-<span style=color:#75715e># https://github.com/FlakM/rustberry/tree/master/heaptrace_csv</span>
-cargo new --bin heaptrace_csv
-</code></pre></div><p>The structures for the above problems:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>use</span> std::io::{self, BufRead};
-
-<span style=color:#75715e>// src/main.rs
-</span><span style=color:#75715e></span><span style=color:#75715e>#[allow(dead_code)]</span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DataRecord</span> {
-    fields: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
-}
-
-<span style=color:#75715e>#[allow(dead_code)]</span>
-<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DataSheet</span> {
-    headers: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
-    rows: Vec<span style=color:#f92672>&lt;</span>DataRecord<span style=color:#f92672>&gt;</span>,
-}
-</code></pre></div><p>And the algorithm itself:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#75715e>// src/main.rs
-</span><span style=color:#75715e></span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>split_str</span>(s: String) -&gt; Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span> {
-    s.split(<span style=color:#e6db74>&#39;,&#39;</span>).map(<span style=color:#66d9ef>str</span>::to_string).collect()
-}
-
-
-<span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>dyn</span> std::error::Error<span style=color:#f92672>&gt;&gt;</span> {
-    <span style=color:#66d9ef>let</span> file <span style=color:#f92672>=</span> std::fs::File::open(<span style=color:#e6db74>&#34;./example.csv&#34;</span>)<span style=color:#f92672>?</span>;
-    <span style=color:#66d9ef>let</span> reader <span style=color:#f92672>=</span> io::BufReader::new(file);
-    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> lines <span style=color:#f92672>=</span> reader.lines();
-
-    <span style=color:#66d9ef>let</span> sheet <span style=color:#f92672>=</span> DataSheet {
-        headers: <span style=color:#a6e22e>split_str</span>(lines.next().ok_or(<span style=color:#e6db74>&#34;empty header&#34;</span>)<span style=color:#f92672>??</span>),
-        rows: <span style=color:#a6e22e>lines</span>
-            .map(<span style=color:#f92672>|</span>l<span style=color:#f92672>|</span> DataRecord {
-                fields: <span style=color:#a6e22e>split_str</span>(l.unwrap()),
-            })
-            .collect(),
-    };
-    Ok(())
-}
-</code></pre></div><p>The program creates <code>BufReader</code> buffering lines from <code>example.csv</code> which is:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash>❯ du -h example.csv
-976K    example.csv
-❯ wc -l example.csv
-<span style=color:#ae81ff>12427</span> example.csv
-</code></pre></div><h2 id=measuring>Measuring</h2>
-<p>To measure memory usage of a process on linux we might use <code>pmap</code> but
+and fields for later access by index. Let&rsquo;s start an example project:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># the complete source code can be found here:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># https://github.com/FlakM/rustberry/tree/master/heaptrace_csv</span>
+</span></span><span style=display:flex><span>cargo new --bin heaptrace_csv
+</span></span></code></pre></div><p>The structures for the above problems:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>use</span> std::io::{self, BufRead};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// src/main.rs
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#[allow(dead_code)]</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DataRecord</span> {
+</span></span><span style=display:flex><span>    fields: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#[allow(dead_code)]</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>DataSheet</span> {
+</span></span><span style=display:flex><span>    headers: Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span>,
+</span></span><span style=display:flex><span>    rows: Vec<span style=color:#f92672>&lt;</span>DataRecord<span style=color:#f92672>&gt;</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>And the algorithm itself:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#75715e>// src/main.rs
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>split_str</span>(s: String) -&gt; Vec<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span> {
+</span></span><span style=display:flex><span>    s.split(<span style=color:#e6db74>&#39;,&#39;</span>).map(<span style=color:#66d9ef>str</span>::to_string).collect()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>fn</span> <span style=color:#a6e22e>main</span>() -&gt; Result<span style=color:#f92672>&lt;</span>(), Box<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>dyn</span> std::error::Error<span style=color:#f92672>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> file <span style=color:#f92672>=</span> std::fs::File::open(<span style=color:#e6db74>&#34;./example.csv&#34;</span>)<span style=color:#f92672>?</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> reader <span style=color:#f92672>=</span> io::BufReader::new(file);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#66d9ef>mut</span> lines <span style=color:#f92672>=</span> reader.lines();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> sheet <span style=color:#f92672>=</span> DataSheet {
+</span></span><span style=display:flex><span>        headers: <span style=color:#a6e22e>split_str</span>(lines.next().ok_or(<span style=color:#e6db74>&#34;empty header&#34;</span>)<span style=color:#f92672>??</span>),
+</span></span><span style=display:flex><span>        rows: <span style=color:#a6e22e>lines</span>
+</span></span><span style=display:flex><span>            .map(<span style=color:#f92672>|</span>l<span style=color:#f92672>|</span> DataRecord {
+</span></span><span style=display:flex><span>                fields: <span style=color:#a6e22e>split_str</span>(l.unwrap()),
+</span></span><span style=display:flex><span>            })
+</span></span><span style=display:flex><span>            .collect(),
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    Ok(())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The program creates <code>BufReader</code> buffering lines from <code>example.csv</code> which is:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>❯ du -h example.csv
+</span></span><span style=display:flex><span>976K    example.csv
+</span></span><span style=display:flex><span>❯ wc -l example.csv
+</span></span><span style=display:flex><span><span style=color:#ae81ff>12427</span> example.csv
+</span></span></code></pre></div><h2 id=measuring>Measuring</h2><p>To measure memory usage of a process on linux we might use <code>pmap</code> but
 to do so we have to add something that will make our program wait for
-the measuring. Let&rsquo;s add simple sleep at the end of main method:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#75715e>// end of main method
-</span><span style=color:#75715e></span>std::thread::sleep(std::time::Duration::from_secs(<span style=color:#ae81ff>10</span>))
-</code></pre></div><p>So to ease the process of understanding memory address we might want to
+the measuring. Let&rsquo;s add simple sleep at the end of main method:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#75715e>// end of main method
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std::thread::sleep(std::time::Duration::from_secs(<span style=color:#ae81ff>10</span>))
+</span></span></code></pre></div><p>So to ease the process of understanding memory address we might want to
 disable <a href=https://en.wikipedia.org/wiki/Address_space_layout_randomization>Address space layout randomization ASLR</a>.
 It&rsquo;s a technique used by os to introduce some randomness into the address
-space of a process to make life harder for those naughty hackers.</p>
-<blockquote>
-<p>As a side note one might think you would think that it&rsquo;s possible before preparing the
-output again and again&mldr;</p>
-</blockquote>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># read https://askubuntu.com/questions/318315/how-can-i-temporarily-disable-aslr-address-space-layout-randomization</span>
-<span style=color:#75715e># for more information</span>
-echo <span style=color:#ae81ff>0</span> | sudo tee /proc/sys/kernel/randomize_va_space
-<span style=color:#75715e># to enable it back on after having fun: </span>
-echo <span style=color:#ae81ff>2</span> | sudo tee /proc/sys/kernel/randomize_va_space
-</code></pre></div><p>And then we can measure the output using <code>pmap</code>:</p>
-<pre tabindex=0><code>❯ cargo run -q --release &amp;
+space of a process to make life harder for those naughty hackers.</p><blockquote><p>As a side note one might think you would think that it&rsquo;s possible before preparing the
+output again and again&mldr;</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># read https://askubuntu.com/questions/318315/how-can-i-temporarily-disable-aslr-address-space-layout-randomization</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># for more information</span>
+</span></span><span style=display:flex><span>echo <span style=color:#ae81ff>0</span> | sudo tee /proc/sys/kernel/randomize_va_space
+</span></span><span style=display:flex><span><span style=color:#75715e># to enable it back on after having fun: </span>
+</span></span><span style=display:flex><span>echo <span style=color:#ae81ff>2</span> | sudo tee /proc/sys/kernel/randomize_va_space
+</span></span></code></pre></div><p>And then we can measure the output using <code>pmap</code>:</p><pre tabindex=0><code>❯ cargo run -q --release &amp;
 
 ❯ pmap -x $(pgrep heaptrace_csv)
 
@@ -200,49 +108,39 @@ Adres                 KB     RSS  Brudne Tryb  Odwzorowanie
 ffffffffff600000       4       0       0 --x--   [ anon ]
 ---------------- ------- ------- ------- 
 razem kB            8372    7308    5524
-
-</code></pre><p>The process is using 8372 kB of memory.</p>
-<p>So we can filter out some shared libraries (files with extension .so) and
+</code></pre><p>The process is using 8372 kB of memory.</p><p>So we can filter out some shared libraries (files with extension .so) and
 focus on <code>anon</code> sections. From
-<a href=https://docs.oracle.com/cd/E19683-01/816-0210/6m6nb7mhj/index.html>man</a> page:</p>
-<blockquote>
-<p>Memory not relating to any named object or file within the file system
+<a href=https://docs.oracle.com/cd/E19683-01/816-0210/6m6nb7mhj/index.html>man</a> page:</p><blockquote><p>Memory not relating to any named object or file within the file system
 is reported as [ anon ].
 If the common name for the mapping is unknown,
-pmap displays [ anon ] as the mapping name.</p>
-</blockquote>
-<p>Lets focus on anon pages then:</p>
-<pre tabindex=0><code>❯ pmap -x $(pgrep heaptrace_csv) | grep anon | awk '{sum+=$2;}END{print sum;}'
+pmap displays [ anon ] as the mapping name.</p></blockquote><p>Lets focus on anon pages then:</p><pre tabindex=0><code>❯ pmap -x $(pgrep heaptrace_csv) | grep anon | awk &#39;{sum+=$2;}END{print sum;}&#39;
 
 5576
-</code></pre><p>It sums to 5676kB. That is <strong>5 times</strong> the size of the file itself!</p>
-<p>Let&rsquo;s add some little pointers printed out to help us identify the
-regions:</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=color:#66d9ef>let</span> zero <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-<span style=color:#66d9ef>let</span> vec_start <span style=color:#f92672>=</span> sheet.rows.as_ptr();
-<span style=color:#66d9ef>let</span> vec_stop <span style=color:#f92672>=</span> <span style=color:#66d9ef>unsafe</span> { vec_start.add(sheet.rows.len()) };
-<span style=color:#66d9ef>let</span> main_ptr <span style=color:#f92672>=</span> main <span style=color:#66d9ef>as</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>const</span> ();
-<span style=color:#66d9ef>let</span> stack_ptr <span style=color:#f92672>=</span> <span style=color:#f92672>&amp;</span>zero;
-
-println!(<span style=color:#e6db74>&#34;vec_start:  {vec_start:p}&#34;</span>);
-println!(<span style=color:#e6db74>&#34;vec_stop:  {vec_stop:p}&#34;</span>);
-println!(<span style=color:#e6db74>&#34;vec_capacity:  {}&#34;</span>, sheet.rows.capacity());
-println!(<span style=color:#e6db74>&#34;code:  {main_ptr:p}&#34;</span>);
-println!(<span style=color:#e6db74>&#34;stack: {stack_ptr:p}&#34;</span>);
-std::thread::sleep(std::time::Duration::from_secs(<span style=color:#ae81ff>60</span>));
-println!(<span style=color:#e6db74>&#34;done sleeping...&#34;</span>);
-
-<span style=color:#75715e>// this will output:
-</span><span style=color:#75715e>//❯ cargo run -q --release
-</span><span style=color:#75715e>//vec_start:  0x7ffff7d19010
-</span><span style=color:#75715e>//vec_stop:  0x7ffff7d61d00
-</span><span style=color:#75715e>//vec_capacity:  16384
-</span><span style=color:#75715e>//code:  0x55555555dc50
-</span><span style=color:#75715e>//stack: 0x7fffffff0854
-</span><span style=color:#75715e>// done sleeping...
-</span></code></pre></div><p>Also let&rsquo;s check system calls:</p>
-<pre tabindex=0><code>$ strace -o strace.log -f ../target/release/heaptrace_csv
-$ grep -E &quot;brk|.*map\(NULL.*ANONYMOUS|m.+map&quot; strace.log 
+</code></pre><p>It sums to 5676kB. That is <strong>5 times</strong> the size of the file itself!</p><p>Let&rsquo;s add some little pointers printed out to help us identify the
+regions:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-rust data-lang=rust><span style=display:flex><span><span style=color:#66d9ef>let</span> zero <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> vec_start <span style=color:#f92672>=</span> sheet.rows.as_ptr();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> vec_stop <span style=color:#f92672>=</span> <span style=color:#66d9ef>unsafe</span> { vec_start.add(sheet.rows.len()) };
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> main_ptr <span style=color:#f92672>=</span> main <span style=color:#66d9ef>as</span> <span style=color:#f92672>*</span><span style=color:#66d9ef>const</span> ();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>let</span> stack_ptr <span style=color:#f92672>=</span> <span style=color:#f92672>&amp;</span>zero;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;vec_start:  {vec_start:p}&#34;</span>);
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;vec_stop:  {vec_stop:p}&#34;</span>);
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;vec_capacity:  {}&#34;</span>, sheet.rows.capacity());
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;code:  {main_ptr:p}&#34;</span>);
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;stack: {stack_ptr:p}&#34;</span>);
+</span></span><span style=display:flex><span>std::thread::sleep(std::time::Duration::from_secs(<span style=color:#ae81ff>60</span>));
+</span></span><span style=display:flex><span>println!(<span style=color:#e6db74>&#34;done sleeping...&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// this will output:
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//❯ cargo run -q --release
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//vec_start:  0x7ffff7d19010
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//vec_stop:  0x7ffff7d61d00
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//vec_capacity:  16384
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//code:  0x55555555dc50
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//stack: 0x7fffffff0854
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// done sleeping...
+</span></span></span></code></pre></div><p>Also let&rsquo;s check system calls:</p><pre tabindex=0><code>$ strace -o strace.log -f ../target/release/heaptrace_csv
+$ grep -E &#34;brk|.*map\(NULL.*ANONYMOUS|m.+map&#34; strace.log 
 
 81944 brk(NULL)                         = 0x5555555a7000
 81944 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ffff7fc4000
@@ -289,166 +187,71 @@ $ grep -E &quot;brk|.*map\(NULL.*ANONYMOUS|m.+map&quot; strace.log
 81944 brk(0x555555a5b000)               = 0x555555a5b000
 81944 brk(0x555555a7c000)               = 0x555555a7c000
 81944 brk(0x555555a9d000)               = 0x555555a9d000
-</code></pre><p>I believe we can see <a href=https://nnethercote.github.io/perf-book/heap-allocations.html#vec-growth>vec growth</a> in action.</p>
-<p>Checkout the line:</p>
-<pre tabindex=0><code>51146 mmap(NULL, 200704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ffff7d7a000
+</code></pre><p>I believe we can see <a href=https://nnethercote.github.io/perf-book/heap-allocations.html#vec-growth>vec growth</a> in action.</p><p>Checkout the line:</p><pre tabindex=0><code>51146 mmap(NULL, 200704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7ffff7d7a000
 </code></pre><p>This is <code>mmap</code> call for the vector of rows growing over threshold where
-previously it was stored in the same mapping created by brk call:</p>
-<pre tabindex=0><code>81944 brk(NULL)                         = 0x5555555a7000
+previously it was stored in the same mapping created by brk call:</p><pre tabindex=0><code>81944 brk(NULL)                         = 0x5555555a7000
 </code></pre><p>Then after the code finished iterating over all lines there was a
-following call:</p>
-<pre tabindex=0><code>81944 mremap(0x7ffff7d7a000, 200704, 397312, MREMAP_MAYMOVE) = 0x7ffff7d19000
-</code></pre><p>which coresponds to: (397312 bytes is 388 Kb)</p>
-<pre tabindex=0><code>00005555555a7000    5080    5052    5052 rw---   [ anon ]
+following call:</p><pre tabindex=0><code>81944 mremap(0x7ffff7d7a000, 200704, 397312, MREMAP_MAYMOVE) = 0x7ffff7d19000
+</code></pre><p>which coresponds to: (397312 bytes is 388 Kb)</p><pre tabindex=0><code>00005555555a7000    5080    5052    5052 rw---   [ anon ]
 00007ffff7d19000     388     292     292 rw---   [ anon ]
 </code></pre><p>To understand this value we have to analyze the output of our program
 again. For <code>DataSheet</code> allocations for inner <code>Vecs</code> are in different
-mapping than the contents of the <code>Vecs</code>:</p>
-<pre tabindex=0><code>vec_start:  0x7ffff7d19010
+mapping than the contents of the <code>Vecs</code>:</p><pre tabindex=0><code>vec_start:  0x7ffff7d19010
 vec_stop:  0x7ffff7d61d00
 code:  0x55555555dc50
 stack: 0x7fffffff0854
-
 </code></pre><p>So to calculate the heap size of <code>DataSheet</code>. We have to use
-the following equation where <code>x</code> is a number of rows :</p>
-<pre tabindex=0><code>size = 24 + x * 24 
+the following equation where <code>x</code> is a number of rows :</p><pre tabindex=0><code>size = 24 + x * 24 
 </code></pre><p>It gives us exactly 292 Kb for the exact length of the file. But since <code>Vec</code>
 is filled in runtime it cannot know the exact length without a hint
 hence growing algorithm reserves larger and larger memory blocks using a heuristic.
 The component of a <code>Vec</code> containing the information on how many elements
 could this <code>Vec</code> hold without new allocation is called <code>capacity</code>.
 The capacity that the output of the program gave us for <code>sheet.rows.capacity()</code> was 16384.
-So for a system with a page size equal to 4096 we get:</p>
-<pre tabindex=0><code>size = 24 + 16384 * 24 = 393400
+So for a system with a page size equal to 4096 we get:</p><pre tabindex=0><code>size = 24 + 16384 * 24 = 393400
 size_page_aligned = 397312
 size_page_aligned_kB = 388
 </code></pre><p>If we factor in the expected size of the <code>Strings</code> from <code>DataRecord</code> which is roughly
 estimated by the size of the file itself (976K) plus each <code>String</code> has
-it&rsquo;s own memory cost (24 bytes) that gives us:</p>
-<pre tabindex=0><code>lines = 12427
+it&rsquo;s own memory cost (24 bytes) that gives us:</p><pre tabindex=0><code>lines = 12427
 columns = 7
 size = 7 * 12427 * 24 = 2087736 = 2038 kB
 total_size = 2038Kb + 976kB = 3014kB
 </code></pre><p>So we have in total roughly 3.32MB which is a lower bound since we are not
 accounting for the unused capacity of individual <code>Strings</code> - yup they are
-just some fancy <code>Vecs</code> - click on the <a href=https://doc.rust-lang.org/std/string/struct.String.html>source</a> link.</p>
-<h2 id=the-more-elegant-solution---heaptrack>The more elegant solution - heaptrack</h2>
-<p>The problem with the above solution is that we are tracking
+just some fancy <code>Vecs</code> - click on the <a href=https://doc.rust-lang.org/std/string/struct.String.html>source</a> link.</p><h2 id=the-more-elegant-solution---heaptrack>The more elegant solution - heaptrack</h2><p>The problem with the above solution is that we are tracking
 <strong>syscalls</strong> and <strong>memory mappings</strong>, not the actual memory usage.
 In happy path for smaller allocations using <code>malloc</code> should not result in
 syscall but reuse previously booked estate backed by some mapping.
 Rust by default uses
 <a href=https://doc.rust-lang.org/std/alloc/struct.System.html>std::alloc::System</a>
 allocator which uses <code>malloc</code> internally. One could use <a href=https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick>LD_PRELOAD</a>
-to trace back the calls to <code>malloc</code> and <code>free</code>.</p>
-<p>Searching for similar tools I&rsquo;ve found this <a href=https://milianw.de/blog/heaptrack-a-heap-memory-profiler-for-linux.html>blog
+to trace back the calls to <code>malloc</code> and <code>free</code>.</p><p>Searching for similar tools I&rsquo;ve found this <a href=https://milianw.de/blog/heaptrack-a-heap-memory-profiler-for-linux.html>blog
 post</a>
 introducing an awesome library:
-<a href=https://github.com/KDE/heaptrack>heaptrack</a> a heap memory profiler for Linux.</p>
-<p>Under the hood, heaptrack uses <code>LD_PRELOAD</code> <a href=https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick>trick</a>
-with smart usage of <code>libbacktrace</code> and <code>unw_backtrace</code> to gain allocation context.</p>
-<p>Since it instruments <code>malloc</code> and <code>free</code> calls it can be used with rust
+<a href=https://github.com/KDE/heaptrack>heaptrack</a> a heap memory profiler for Linux.</p><p>Under the hood, heaptrack uses <code>LD_PRELOAD</code> <a href=https://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick>trick</a>
+with smart usage of <code>libbacktrace</code> and <code>unw_backtrace</code> to gain allocation context.</p><p>Since it instruments <code>malloc</code> and <code>free</code> calls it can be used with rust
 binaries without any code changes. Given the debug symbols
-are enabled you can pinpoint allocations to specific places in code.</p>
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=color:#75715e># build with debug symbols</span>
-❯ RUSTFLAGS<span style=color:#f92672>=</span>-g cargo build --release
-
-❯ heaptrack  ../target/release/heaptrace_csv
-
-heaptrack output will be written to <span style=color:#e6db74>&#34;/home/flakm/programming/flakm/rustberry/heaptrace_csv/heaptrack.heaptrace_csv.86078.zst&#34;</span>
-starting application, this might take some time...
-vec_start:  0x7ffff715d010
-vec_stop:  0x7ffff71a5d00
-vec_capacity:  <span style=color:#ae81ff>16384</span>
-code:  0x55555555dc50
-stack: 0x7ffffffef404
-<span style=color:#66d9ef>done</span> sleeping...
-heaptrack stats:
-        allocations:            <span style=color:#ae81ff>111990</span>
-        leaked allocations:     <span style=color:#ae81ff>0</span>
-        temporary allocations:  <span style=color:#ae81ff>122</span>
-Heaptrack finished! Now run the following to investigate the data:
-
-  heaptrack --analyze <span style=color:#e6db74>&#34;/home/flakm/programming/flakm/rustberry/heaptrace_csv/heaptrack.heaptrace_csv.86078.zst&#34;</span>
-
-</code></pre></div><h3 id=heaptrack-output>Heaptrack output</h3>
-<p>If we execute the code that the output of the above command suggested we
-will get the following screens to enjoy:</p>
-<figure class=img-lg><img src=/images/heap_track/summary.png alt="Peak heap memory consumption reported as 3.8MB"><figcaption>
-<p>Peak heap memory consumption reported as 3.8MB</p>
-</figcaption>
-</figure>
-<p><figure class=img-lg><img src=/images/heap_track/split_str.png alt="We can see that collect called on split_str function results attributed to allocating 2.8MB"><figcaption>
-<p>We can see that <code>collect</code> called on <code>split_str</code> function results attributed to allocating 2.8MB</p>
-</figcaption>
-</figure>
-<figure class=img-lg><img src=/images/heap_track/contribution.png alt="Flame graph showing the same runtime"><figcaption>
-<p>Flame graph showing the same runtime</p>
-</figcaption>
-</figure>
-<figure class=img-lg><img src=/images/heap_track/total_consumption.png alt="Total consumption chart"><figcaption>
-<p>Total consumption chart</p>
-</figcaption>
-</figure>
-</p>
-<h3 id=additional-resources>Additional resources</h3>
-<ul>
-<li><a href=https://stackoverflow.com/questions/131303/how-can-i-measure-the-actual-memory-usage-of-an-application-or-process/131346#131346>SO: measuring actual memory usage</a></li>
-<li><a href=https://nnethercote.github.io/perf-book/profiling.html>Profiling book</a></li>
-<li><a href=https://rust-analyzer.github.io/blog/2020/12/04/measuring-memory-usage-in-rust.html>Rust analyzer measuring memory usage</a></li>
-<li><a href=https://dev.to/dandyvica/different-ways-of-reading-files-in-rust-2n30>Reading files rust way</a></li>
-<li><a href=https://fasterthanli.me/articles/small-strings-in-rust>Fasterthanlime: small strings</a></li>
-</ul>
-Photo by <a href="https://unsplash.com/@markusspiske?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Markus Spiske</a> on <a href="https://unsplash.com/s/photos/heap?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
-<script defer language=javascript type=text/javascript src=/js/add_anchors.js></script>
-<ul class=pa0>
-<li class="list di">
-<a href=/tags/rust class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a>
-</li>
-<li class="list di">
-<a href=/tags/english class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">english</a>
-</li>
-</ul>
-<div class="mt6 instapaper_ignoref">
-<div id=disqus_thread></div>
-<script type=application/javascript>var disqus_config=function(){};(function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById('disqus_thread').innerHTML='Disqus comments not available by default when the website is previewed locally.';return}var b=document,a=b.createElement('script');a.async=!0,a.src='//flakm-blog.disqus.com/embed.js',a.setAttribute('data-timestamp',+new Date),(b.head||b.body).appendChild(a)})()</script>
-<noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
-<a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
-</div>
-</div>
-<aside class="w-30-l mt6-l">
-<div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links">
-<p class="f5 b mb3">Related</p>
-<ul class="pa0 list">
-<li class=mb2>
-<a href=/posts/rustydht11/>Rustberry PI - DHT11</a>
-</li>
-<li class=mb2>
-<a href=/posts/rustylcd/>Rustberry PI - LCD</a>
-</li>
-<li class=mb2>
-<a href=/posts/rustyled/>Rustberry PI - LED</a>
-</li>
-</ul>
-</div>
-</aside>
-</article>
-</main>
-<footer class="bg-black bottom-0 w-100 pa3" role=contentinfo>
-<div class="flex justify-between">
-<a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>
-&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022
-</a>
-<div>
-<div class=ananke-socials>
-<a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window">
-<span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg>
-</span>
-<span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg>
-</span></a>
-</div>
-</div>
-</div>
-</footer>
-</body>
-</html>
+are enabled you can pinpoint allocations to specific places in code.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># build with debug symbols</span>
+</span></span><span style=display:flex><span>❯ RUSTFLAGS<span style=color:#f92672>=</span>-g cargo build --release
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>❯ heaptrack  ../target/release/heaptrace_csv
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>heaptrack output will be written to <span style=color:#e6db74>&#34;/home/flakm/programming/flakm/rustberry/heaptrace_csv/heaptrack.heaptrace_csv.86078.zst&#34;</span>
+</span></span><span style=display:flex><span>starting application, this might take some time...
+</span></span><span style=display:flex><span>vec_start:  0x7ffff715d010
+</span></span><span style=display:flex><span>vec_stop:  0x7ffff71a5d00
+</span></span><span style=display:flex><span>vec_capacity:  <span style=color:#ae81ff>16384</span>
+</span></span><span style=display:flex><span>code:  0x55555555dc50
+</span></span><span style=display:flex><span>stack: 0x7ffffffef404
+</span></span><span style=display:flex><span><span style=color:#66d9ef>done</span> sleeping...
+</span></span><span style=display:flex><span>heaptrack stats:
+</span></span><span style=display:flex><span>        allocations:            <span style=color:#ae81ff>111990</span>
+</span></span><span style=display:flex><span>        leaked allocations:     <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>        temporary allocations:  <span style=color:#ae81ff>122</span>
+</span></span><span style=display:flex><span>Heaptrack finished! Now run the following to investigate the data:
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  heaptrack --analyze <span style=color:#e6db74>&#34;/home/flakm/programming/flakm/rustberry/heaptrace_csv/heaptrack.heaptrace_csv.86078.zst&#34;</span>
+</span></span></code></pre></div><h3 id=heaptrack-output>Heaptrack output</h3><p>If we execute the code that the output of the above command suggested we
+will get the following screens to enjoy:</p><figure class=img-lg><img src=/images/heap_track/summary.png alt="Peak heap memory consumption reported as 3.8MB"><figcaption><p>Peak heap memory consumption reported as 3.8MB</p></figcaption></figure><p><figure class=img-lg><img src=/images/heap_track/split_str.png alt="We can see that collect called on split_str function results attributed to allocating 2.8MB"><figcaption><p>We can see that <code>collect</code> called on <code>split_str</code> function results attributed to allocating 2.8MB</p></figcaption></figure><figure class=img-lg><img src=/images/heap_track/contribution.png alt="Flame graph showing the same runtime"><figcaption><p>Flame graph showing the same runtime</p></figcaption></figure><figure class=img-lg><img src=/images/heap_track/total_consumption.png alt="Total consumption chart"><figcaption><p>Total consumption chart</p></figcaption></figure></p><h3 id=additional-resources>Additional resources</h3><ul><li><a href=https://stackoverflow.com/questions/131303/how-can-i-measure-the-actual-memory-usage-of-an-application-or-process/131346#131346>SO: measuring actual memory usage</a></li><li><a href=https://nnethercote.github.io/perf-book/profiling.html>Profiling book</a></li><li><a href=https://rust-analyzer.github.io/blog/2020/12/04/measuring-memory-usage-in-rust.html>Rust analyzer measuring memory usage</a></li><li><a href=https://dev.to/dandyvica/different-ways-of-reading-files-in-rust-2n30>Reading files rust way</a></li><li><a href=https://fasterthanli.me/articles/small-strings-in-rust>Fasterthanlime: small strings</a></li></ul>Photo by <a href="https://unsplash.com/@markusspiske?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Markus Spiske</a> on <a href="https://unsplash.com/s/photos/heap?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+<script defer language=javascript type=text/javascript src=/js/add_anchors.js></script><ul class=pa0><li class="list di"><a href=/tags/rust/ class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">rust</a></li><li class="list di"><a href=/tags/english/ class="link f5 grow no-underline br-pill ba ph3 pv2 mb2 dib black sans-serif">english</a></li></ul><div class="mt6 instapaper_ignoref"></div></div><aside class="w-30-l mt6-l"><div class="bg-light-gray pa3 nested-list-reset nested-copy-line-height nested-links"><p class="f5 b mb3">Related</p><ul class="pa0 list"><li class=mb2><a href=/posts/rustydht11/>Rustberry PI - DHT11</a></li><li class=mb2><a href=/posts/rustylcd/>Rustberry PI - LCD</a></li><li class=mb2><a href=/posts/rustyled/>Rustberry PI - LED</a></li></ul></div></aside></article></main><footer class="bg-black bottom-0 w-100 pa3" role=contentinfo><div class="flex justify-between"><a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href=https://flakm.github.io/>&copy; Copyright © 2022, Maciej Flak; all rights reserved. 2022</a><div><div class=ananke-socials><a href=https://github.com/FlakM target=_blank class="github ananke-social-link link-transition stackoverflow link dib z-999 pt3 pt0-l mr1" title="GitHub link" rel=noopener aria-label="follow on GitHub——Opens in a new window"><span class=icon><svg style="enable-background:new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M256 32C132.3 32 32 134.8 32 261.7c0 101.5 64.2 187.5 153.2 217.9 11.2 2.1 15.3-5 15.3-11.1.0-5.5-.2-19.9-.3-39.1-62.3 13.9-75.5-30.8-75.5-30.8-10.2-26.5-24.9-33.6-24.9-33.6-20.3-14.3 1.5-14 1.5-14 22.5 1.6 34.3 23.7 34.3 23.7 20 35.1 52.4 25 65.2 19.1 2-14.8 7.8-25 14.2-30.7-49.7-5.8-102-25.5-102-113.5.0-25.1 8.7-45.6 23-61.6-2.3-5.8-10-29.2 2.2-60.8.0.0 18.8-6.2 61.6 23.5 17.9-5.1 37-7.6 56.1-7.7 19 .1 38.2 2.6 56.1 7.7 42.8-29.7 61.5-23.5 61.5-23.5 12.2 31.6 4.5 55 2.2 60.8 14.3 16.1 23 36.6 23 61.6.0 88.2-52.4 107.6-102.3 113.3 8 7.1 15.2 21.1 15.2 42.5.0 30.7-.3 55.5-.3 63 0 6.1 4 13.3 15.4 11C415.9 449.1 480 363.1 480 261.7 480 134.8 379.7 32 256 32z"/></svg></span><span class=new-window><svg height="8" style="enable-background:new 0 0 1000 1000" viewBox="0 0 1e3 1e3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M598 128h298v298h-86V274L392 692l-60-60 418-418H598v-86zM810 810V512h86v298c0 46-40 86-86 86H214c-48 0-86-40-86-86V214c0-46 38-86 86-86h298v86H214v596h596z" style="fill-rule:evenodd;clip-rule:evenodd"/></svg></span></a></div></div></div></footer></body></html>
